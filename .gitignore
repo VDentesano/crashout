@@ -27,6 +27,11 @@ auto-loop.log*
 .auto-loop-stop
 .auto-loop-paused
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # OS
 .DS_Store
 Thumbs.db
@@ -41,6 +46,9 @@ Thumbs.db
 projects/*/node_modules/
 projects/*/dist/
 projects/*/build/
+
+# Backups
+*.bak
 
 # Credentials (never commit)
 *.pem
