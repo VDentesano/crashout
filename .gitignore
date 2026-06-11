@@ -1,0 +1,49 @@
+# Auto-Company: Crash Crypto PVP
+# Package manager: pnpm (never npm)
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+.auto-loop.env.bak
+
+# Logs
+logs/
+cycle-*.log
+auto-loop.log*
+
+# State files
+.auto-loop.pid
+.auto-loop-state
+.auto-loop-stop
+.auto-loop-paused
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project outputs
+projects/*/node_modules/
+projects/*/dist/
+projects/*/build/
+
+# Credentials (never commit)
+*.pem
+*.key
+*.cert
+uak_*

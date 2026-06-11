@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "WebSearch",
+      "Bash",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "NotebookEdit",
+      "Skill",
+      "Task"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "AGENT_MODELS_ENABLED": "1"
+  },
+  "tools": {
+    "team": {
+      "enabled": true,
+      "read_agent_models": true
+    }
+  }
+}
