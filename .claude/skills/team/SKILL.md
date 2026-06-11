@@ -19,29 +19,29 @@ $ARGUMENTS
 
 | Agent | 文件 | 职能 | 模型 |
 |-------|------|----------|------|
-| CEO | `ceo-bezos` | 战略决策、商业模式、PR/FAQ、优先级 | fable |
-| CTO | `cto-vogels` | 技术架构、技术选型、系统设计 | opus |
-| 逆向思考 | `critic-munger` | 质疑决策、识别致命缺陷、Pre-Mortem、防止集体幻觉 | fable |
-| 产品设计 | `product-norman` | 产品定义、用户体验、可用性 | sonnet |
-| UI 设计 | `ui-duarte` | 视觉设计、设计系统、配色排版 | sonnet |
-| 交互设计 | `interaction-cooper` | 用户流程、Persona、交互模式 | sonnet |
-| 全栈开发 | `fullstack-dhh` | 代码实现、技术方案、开发 | opus |
-| QA | `qa-bach` | 测试策略、质量把控、Bug 分析 | sonnet |
-| DevOps/SRE | `devops-hightower` | 部署流水线、CI/CD、基础设施、监控运维 | sonnet |
-| 营销 | `marketing-godin` | 定位、品牌、获客、内容 | sonnet |
-| 运营 | `operations-pg` | 用户运营、增长、社区、PMF | sonnet |
-| 销售 | `sales-ross` | 销售漏斗、转化策略 | sonnet |
-| CFO | `cfo-campbell` | 定价策略、财务模型、成本控制、单位经济 | opus |
-| 调研分析 | `research-thompson` | 市场调研、竞品分析、行业趋势、机会发现 | fable |
+| CEO | `ceo-bezos` | 战略决策、商业模式、PR/FAQ、优先级 | claude-fable-5 |
+| CTO | `cto-vogels` | 技术架构、技术选型、系统设计 | claude-opus-4-8 |
+| 逆向思考 | `critic-munger` | 质疑决策、识别致命缺陷、Pre-Mortem、防止集体幻觉 | claude-fable-5 |
+| 产品设计 | `product-norman` | 产品定义、用户体验、可用性 | claude-sonnet-4-6 |
+| UI 设计 | `ui-duarte` | 视觉设计、设计系统、配色排版 | claude-sonnet-4-6 |
+| 交互设计 | `interaction-cooper` | 用户流程、Persona、交互模式 | claude-sonnet-4-6 |
+| 全栈开发 | `fullstack-dhh` | 代码实现、技术方案、开发 | claude-opus-4-8 |
+| QA | `qa-bach` | 测试策略、质量把控、Bug 分析 | claude-sonnet-4-6 |
+| DevOps/SRE | `devops-hightower` | 部署流水线、CI/CD、基础设施、监控运维 | claude-sonnet-4-6 |
+| 营销 | `marketing-godin` | 定位、品牌、获客、内容 | claude-sonnet-4-6 |
+| 运营 | `operations-pg` | 用户运营、增长、社区、PMF | claude-sonnet-4-6 |
+| 销售 | `sales-ross` | 销售漏斗、转化策略 | claude-sonnet-4-6 |
+| CFO | `cfo-campbell` | 定价策略、财务模型、成本控制、单位经济 | claude-opus-4-8 |
+| 调研分析 | `research-thompson` | 市场调研、竞品分析、行业趋势、机会发现 | claude-fable-5 |
 
 ## 多模型架构
 
 本项目使用多模型架构。每个 agent 在其 frontmatter 中定义了 `model` 字段。组建团队时，**必须**读取该字段并传递给 `Task` 工具。
 
 模型层级：
-- **fable**: 战略层（CEO, Critic, Research）— 深度推理、战略分析
-- **opus**: 架构层（CTO, CFO, Fullstack）— 复杂架构、代码、财务模型
-- **sonnet**: 执行层（UI, Product, QA, DevOps, Marketing, Ops, Sales）— 快速执行、设计、测试
+- **claude-fable-5**: 战略层（CEO, Critic, Research）— 深度推理、战略分析
+- **claude-opus-4-8**: 架构层（CTO, CFO, Fullstack）— 复杂架构、代码、财务模型
+- **claude-sonnet-4-6**: 执行层（UI, Product, QA, DevOps, Marketing, Ops, Sales）— 快速执行、设计、测试
 
 ## 执行步骤
 
@@ -51,14 +51,14 @@ $ARGUMENTS
 - **只选必要的**：不是人越多越好，精准匹配任务需求
 - **考虑协作链**：如果任务涉及从设计到开发，确保链路上的关键角色都在
 - **避免冗余**：职能重叠的不要同时选
-- **考虑模型**：复杂战略任务优先选 fable 模型 agent，复杂架构选 opus，执行选 sonnet
+- **考虑模型**：复杂战略任务优先选 claude-fable-5 模型 agent，复杂架构选 claude-opus-4-8，执行选 claude-sonnet-4-6
 
 向创始人简要说明你选了谁、为什么选他们，以及他们各自的模型，然后立即开始组建。
 
 ### 2. 读取 Agent 定义
 
 对每个选中的 agent，读取其 `.claude/agents/<agent-name>.md` 文件，提取：
-1. **模型**: 从 frontmatter 的 `model` 字段读取（fable / opus / sonnet）
+1. **模型**: 从 frontmatter 的 `model` 字段读取（claude-fable-5 / claude-opus-4-8 / claude-sonnet-4-6）
 2. **角色设定**: 文件完整内容作为 prompt 注入
 
 ### 3. 组建 Agent Team
@@ -68,7 +68,7 @@ $ARGUMENTS
 - 为每个成员创建具体的任务（TaskCreate），任务描述要包含足够上下文
 - **关键**：用 Task 工具 spawn 每个 teammate 时，必须指定 `model` 参数为从 agent frontmatter 读取的模型
   - `subagent_type` 选 `general-purpose`
-  - `model` 选该 agent 定义的模型（fable / opus / sonnet）
+  - `model` 选该 agent 定义的模型（claude-fable-5 / claude-opus-4-8 / claude-sonnet-4-6）
   - 在 prompt 中注入对应 agent 文件的完整内容作为角色设定
 - spawn teammate 时通过 prompt 告知：你的角色设定、要完成的任务、产出文档存放在 `docs/<role>/` 目录下
 

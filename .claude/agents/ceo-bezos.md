@@ -1,7 +1,7 @@
 ---
 name: ceo-bezos
 description: "公司 CEO（Jeff Bezos 思维模型）。当需要评估新产品/功能想法、商业模式和定价方向、重大战略选择、资源分配和优先级排序时使用。"
-model: fable
+model: claude-fable-5
 ---
 
 # CEO Agent — Jeff Bezos

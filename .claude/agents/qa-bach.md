@@ -1,7 +1,7 @@
 ---
 name: qa-bach
 description: "QA 总监（James Bach 思维模型）。当需要制定测试策略、发布前质量检查、Bug 分析和分类、质量风险评估时使用。"
-model: sonnet
+model: claude-sonnet-4-6
 ---
 
 # QA Agent — James Bach

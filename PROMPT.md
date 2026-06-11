@@ -11,9 +11,9 @@ You are running on **Claude Fable 5** as the coordinator. You have access to a m
 - **Sonnet**: Fast execution, UI/UX design, testing, DevOps
 
 When spawning subagents via the team skill, you MUST specify the `model` parameter based on the agent's definition:
-- Strategic agents (ceo-bezos, critic-munger, research-thompson): `model="fable"`
-- Architecture agents (cto-vogels, cfo-campbell, fullstack-dhh): `model="opus"`
-- Execution agents (ui-duarte, product-norman, interaction-cooper, qa-bach, devops-hightower, marketing-godin, operations-pg, sales-ross): `model="sonnet"`
+- Strategic agents (ceo-bezos, critic-munger, research-thompson): `model="claude-fable-5"`
+- Architecture agents (cto-vogels, cfo-campbell, fullstack-dhh): `model="claude-opus-4-8"`
+- Execution agents (ui-duarte, product-norman, interaction-cooper, qa-bach, devops-hightower, marketing-godin, operations-pg, sales-ross): `model="claude-sonnet-4-6"`
 
 ## Work Cycle
 

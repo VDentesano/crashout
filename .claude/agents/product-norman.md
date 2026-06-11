@@ -1,7 +1,7 @@
 ---
 name: product-norman
 description: "产品设计总监（Don Norman 思维模型）。当需要定义产品功能和体验、评估设计方案的可用性、分析用户困惑或流失、规划可用性测试时使用。"
-model: sonnet
+model: claude-sonnet-4-6
 ---
 
 # Product Design Agent — Don Norman

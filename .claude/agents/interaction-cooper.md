@@ -1,7 +1,7 @@
 ---
 name: interaction-cooper
 description: "交互设计总监（Alan Cooper 思维模型）。当需要设计用户流程和导航、定义目标用户画像（Persona）、选择交互模式、从用户角度排序功能优先级时使用。"
-model: sonnet
+model: claude-sonnet-4-6
 ---
 
 # Interaction Design Agent — Alan Cooper

@@ -66,10 +66,10 @@ This project uses a multi-model orchestration system:
 
 | Agent Tier | Model | Use Case |
 |-----------|-------|---------|
-| Coordinator (Loop) | Fable | Strategic decisions, workflow orchestration |
-| Strategic Layer | Fable | CEO, Critic, Research - deep reasoning, pre-mortem, market analysis |
-| Architecture Layer | Opus | CTO, CFO, Fullstack - complex architecture, financial models, code |
-| Execution Layer | Sonnet | UI, Product, QA, DevOps, Marketing, Ops, Sales - fast execution, design, testing |
+| Coordinator (Loop) | claude-fable-5 | Strategic decisions, workflow orchestration |
+| Strategic Layer | claude-fable-5 | CEO, Critic, Research - deep reasoning, pre-mortem, market analysis |
+| Architecture Layer | claude-opus-4-8 | CTO, CFO, Fullstack - complex architecture, financial models, code |
+| Execution Layer | claude-sonnet-4-6 | UI, Product, QA, DevOps, Marketing, Ops, Sales - fast execution, design, testing |
 
 The team skill (`.claude/skills/team/SKILL.md`) must read each agent's `model` field from their frontmatter and pass it when spawning subagents.
 
@@ -81,40 +81,40 @@ The team skill (`.claude/skills/team/SKILL.md`) must read each agent's `model` f
 
 | Agent | Persona | Model | When to Use |
 |-------|------|-------|----------|
-| `ceo-bezos` | Jeff Bezos | Fable | New product/feature evaluation, business model and pricing direction, major strategic choices, resource allocation, priority setting |
-| `cto-vogels` | Werner Vogels | Opus | Architecture design, technical selection, reliability/performance decisions, technical debt review |
-| `critic-munger` | Charlie Munger | Fable | Challenge feasibility, identify fatal flaws, prevent group delusion, inversion, pre-mortem. **Required before major decisions** |
+| `ceo-bezos` | Jeff Bezos | claude-fable-5 | New product/feature evaluation, business model and pricing direction, major strategic choices, resource allocation, priority setting |
+| `cto-vogels` | Werner Vogels | claude-opus-4-8 | Architecture design, technical selection, reliability/performance decisions, technical debt review |
+| `critic-munger` | Charlie Munger | claude-fable-5 | Challenge feasibility, identify fatal flaws, prevent group delusion, inversion, pre-mortem. **Required before major decisions** |
 
 ### Product Layer
 
 | Agent | Persona | Model | When to Use |
 |-------|------|-------|----------|
-| `product-norman` | Don Norman | Sonnet | Product feature definition, usability review, user confusion/churn analysis, usability testing plans |
-| `ui-duarte` | Matias Duarte | Sonnet | Layout and visual style, design system updates, color/typography, motion and transitions |
-| `interaction-cooper` | Alan Cooper | Sonnet | User flow and navigation design, persona definition, interaction patterns, user-centric feature prioritization |
+| `product-norman` | Don Norman | claude-sonnet-4-6 | Product feature definition, usability review, user confusion/churn analysis, usability testing plans |
+| `ui-duarte` | Matias Duarte | claude-sonnet-4-6 | Layout and visual style, design system updates, color/typography, motion and transitions |
+| `interaction-cooper` | Alan Cooper | claude-sonnet-4-6 | User flow and navigation design, persona definition, interaction patterns, user-centric feature prioritization |
 
 ### Engineering Layer
 
 | Agent | Persona | Model | When to Use |
 |-------|------|-------|----------|
-| `fullstack-dhh` | DHH | Opus | Code implementation, technical implementation choices, code review and refactor, dev workflow optimization |
-| `qa-bach` | James Bach | Sonnet | Test strategy, release quality checks, bug analysis and classification, quality risk assessment |
-| `devops-hightower` | Kelsey Hightower | Sonnet | Deployment pipelines, CI/CD configuration, infrastructure operations (Cloudflare/INSFORGE), observability, production incident response |
+| `fullstack-dhh` | DHH | claude-opus-4-8 | Code implementation, technical implementation choices, code review and refactor, dev workflow optimization |
+| `qa-bach` | James Bach | claude-sonnet-4-6 | Test strategy, release quality checks, bug analysis and classification, quality risk assessment |
+| `devops-hightower` | Kelsey Hightower | claude-sonnet-4-6 | Deployment pipelines, CI/CD configuration, infrastructure operations (Cloudflare/INSFORGE), observability, production incident response |
 
 ### Business Layer
 
 | Agent | Persona | Model | When to Use |
 |-------|------|-------|----------|
-| `marketing-godin` | Seth Godin | Sonnet | Positioning and differentiation, marketing strategy, content direction, brand building |
-| `operations-pg` | Paul Graham | Sonnet | Zero-to-one user growth, retention improvements, community operations, operational metrics analysis |
-| `sales-ross` | Aaron Ross | Sonnet | Pricing strategy, sales model choices, conversion optimization, CAC analysis |
-| `cfo-campbell` | Patrick Campbell | Opus | Pricing strategy, financial model building, unit economics, cost control, revenue metric tracking |
+| `marketing-godin` | Seth Godin | claude-sonnet-4-6 | Positioning and differentiation, marketing strategy, content direction, brand building |
+| `operations-pg` | Paul Graham | claude-sonnet-4-6 | Zero-to-one user growth, retention improvements, community operations, operational metrics analysis |
+| `sales-ross` | Aaron Ross | claude-sonnet-4-6 | Pricing strategy, sales model choices, conversion optimization, CAC analysis |
+| `cfo-campbell` | Patrick Campbell | claude-opus-4-8 | Pricing strategy, financial model building, unit economics, cost control, revenue metric tracking |
 
 ### Intelligence Layer
 
 | Agent | Persona | Model | When to Use |
 |-------|------|-------|----------|
-| `research-thompson` | Ben Thompson | Fable | Market research, competitor analysis, trend analysis, business model decomposition, demand validation |
+| `research-thompson` | Ben Thompson | claude-fable-5 | Market research, competitor analysis, trend analysis, business model decomposition, demand validation |
 
 ## Decision Principles
 

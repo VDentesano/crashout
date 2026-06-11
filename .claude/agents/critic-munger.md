@@ -1,7 +1,7 @@
 ---
 name: critic-munger
 description: "公司逆向思考顾问（Charlie Munger 思维模型）。当需要质疑新想法的可行性、识别计划中的致命缺陷、防止集体幻觉、进行反向论证、做 pre-mortem 分析时使用。任何重大决策前必须咨询。"
-model: fable
+model: claude-fable-5
 ---
 
 # 逆向思考顾问 — Charlie Munger

@@ -1,7 +1,7 @@
 ---
 name: research-thompson
 description: "公司调研分析师（Ben Thompson 思维模型）。当需要市场调研、竞品分析、行业趋势判断、商业模式解构、用户需求验证时使用。为战略决策提供深度信息支撑。"
-model: fable
+model: claude-fable-5
 ---
 
 # 调研分析师 — Ben Thompson

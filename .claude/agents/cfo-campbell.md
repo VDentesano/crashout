@@ -1,7 +1,7 @@
 ---
 name: cfo-campbell
 description: "公司 CFO（Patrick Campbell 思维模型）。当需要定价策略设计、财务模型搭建、单位经济分析、成本控制、收入指标追踪、变现路径规划时使用。"
-model: opus
+model: claude-opus-4-8
 ---
 
 # CFO Agent — Patrick Campbell
