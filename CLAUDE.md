@@ -66,7 +66,8 @@ This project uses a multi-model orchestration system:
 
 | Agent Tier | Model | Use Case |
 |-----------|-------|---------|
-| All Agents | inherit (inherit) | All agents inherit coordinator model |
+| Coordinator (Loop) | claude-opus-4-8 | Strategic decisions, workflow orchestration |
+| All Agents | inherit (claude-opus-4-8) | All agents inherit coordinator model |
 
 **Note**: Claude Code API does not support multi-model subagent spawning. All agents run on the coordinator model. Different agent tiers are differentiated by their persona/prompt, not by model.
 
