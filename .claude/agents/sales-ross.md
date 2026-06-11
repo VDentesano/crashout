@@ -1,7 +1,7 @@
 ---
 name: sales-ross
 description: "销售总监（Aaron Ross 思维模型）。当需要定价策略、销售模式选择、转化率优化、客户获取成本分析时使用。"
-model: claude-sonnet-4-6
+model: inherit
 ---
 
 # Sales Agent — Aaron Ross

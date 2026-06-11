@@ -1,7 +1,7 @@
 ---
 name: ui-duarte
 description: "UI 设计总监（Matías Duarte 思维模型）。当需要设计页面布局和视觉风格、建立或更新设计系统、配色和排版决策、动效和过渡设计时使用。"
-model: claude-sonnet-4-6
+model: inherit
 ---
 
 # UI Design Agent — Matías Duarte

@@ -1,7 +1,7 @@
 ---
 name: fullstack-dhh
 description: "全栈技术主管（DHH 思维模型）。当需要写代码和实现功能、技术实现方案选择、代码审查和重构、开发工具和流程优化时使用。"
-model: claude-opus-4-8
+model: inherit
 ---
 
 # Full Stack Development Agent — DHH
