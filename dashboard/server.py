@@ -29,12 +29,17 @@ MACOS_STATUS_SCRIPT = REPO_ROOT / "scripts" / "macos" / "status-mac.sh"
 MACOS_START_SCRIPT = REPO_ROOT / "scripts" / "macos" / "install-daemon.sh"
 MACOS_STOP_SCRIPT = REPO_ROOT / "scripts" / "core" / "stop-loop.sh"
 
+LINUX_STATUS_SCRIPT = REPO_ROOT / "scripts" / "core" / "monitor.sh"
+LINUX_START_SCRIPT = REPO_ROOT / "scripts" / "core" / "auto-loop.sh"
+LINUX_STOP_SCRIPT = REPO_ROOT / "scripts" / "core" / "stop-loop.sh"
+
 LOG_FILE = REPO_ROOT / "logs" / "auto-loop.log"
 STATE_FILE = REPO_ROOT / ".auto-loop-state"
 CONSENSUS_FILE = REPO_ROOT / "memories" / "consensus.md"
 
 WINDOWS_HOST = "windows"
 MACOS_HOST = "macos"
+LINUX_HOST = "linux"
 
 
 def ps_quote(value: str) -> str:
@@ -47,8 +52,10 @@ def detect_host_kind(system_name: str | None = None) -> str:
         return WINDOWS_HOST
     if name == "Darwin":
         return MACOS_HOST
+    if name == "Linux":
+        return MACOS_HOST  # Linux uses same shell script runner as macOS
     raise RuntimeError(
-        "Dashboard only supports Windows hosts (with WSL backend) and macOS hosts."
+        "Dashboard only supports Windows hosts (with WSL backend), macOS, and Linux hosts."
     )
 
 
@@ -143,6 +150,17 @@ def get_host_profile(system_name: str | None = None) -> dict[str, Any]:
             "start_script": WINDOWS_START_SCRIPT,
             "start_args": None,
             "stop_script": WINDOWS_STOP_SCRIPT,
+            "stop_args": None,
+        }
+    if host == LINUX_HOST:
+        return {
+            "host": host,
+            "runner": run_shell_script,
+            "parser": parse_macos_status_output,
+            "status_script": LINUX_STATUS_SCRIPT,
+            "start_script": LINUX_START_SCRIPT,
+            "start_args": None,
+            "stop_script": LINUX_STOP_SCRIPT,
             "stop_args": None,
         }
     return {
