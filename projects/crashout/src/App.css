@@ -660,6 +660,84 @@
   font-weight: 600;
 }
 
+/* ── Economy — balance chip ──────────────────────────── */
+.chip-gold {
+  color: var(--gold);
+  border-color: var(--gold-dim);
+}
+.dot-gold {
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+}
+
+/* ── Economy — bet selector ──────────────────────────── */
+.bet-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.bet-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--muted-rd);
+  margin-right: 2px;
+}
+.bet-opt {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted-rd);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.bet-opt:hover:not(:disabled) {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+.bet-opt.active {
+  border-color: var(--gold);
+  background: rgba(245, 200, 66, 0.1);
+  color: var(--gold);
+  box-shadow: 0 0 14px rgba(245, 200, 66, 0.18);
+}
+.bet-opt.dim,
+.bet-opt:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Economy — delta in match verdict ─────────────────── */
+.vdelta {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  animation: rise 0.35s ease-out;
+}
+.vdelta.win {
+  color: var(--gold);
+}
+.vdelta.loss {
+  color: var(--crash);
+}
+
+/* ── Economy — rebuy button ──────────────────────────── */
+.primary.rebuy {
+  background: var(--gold);
+  color: #1a1200;
+  box-shadow: 0 0 36px rgba(245, 200, 66, 0.28);
+}
+.primary.rebuy:hover {
+  filter: brightness(1.1);
+}
+
 /* ── Gate debug panel ──────────────────────────────── */
 .gate {
   position: fixed;

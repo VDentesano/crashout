@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Ref } from 'react';
 import './App.css';
 import CurveCanvas from './components/CurveCanvas';
@@ -13,6 +13,14 @@ import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
 import { ROUNDS_PER_MATCH } from './game/types';
 import type { MatchResult, RoundRecord } from './game/types';
 import { isBackendConnected, localGateReadout } from './analytics/logger';
+import {
+  applyMatchResult,
+  BET_OPTIONS,
+  type BetOption,
+  getBalance,
+  MIN_BET,
+  rebuy,
+} from './game/economy';
 
 function fmt(m: number | null): string {
   return m === null ? 'BUST' : `${m.toFixed(2)}×`;
@@ -35,6 +43,26 @@ export default function App() {
   // `matchResult` is briefly null while a rematch spins up the next match, even
   // though phase is still 'matchEnd' — gate the final-score view on both.
   const matchEnd = phase === 'matchEnd' && matchResult !== null;
+
+  // Economy — play-money balance and bet selection.
+  const [balance, setBalance] = useState(getBalance);
+  const [bet, setBet] = useState<BetOption>(100);
+  const [lastDelta, setLastDelta] = useState<number | null>(null);
+  const betRef = useRef(bet);
+  const economyApplied = useRef(false);
+  useEffect(() => { betRef.current = bet; }, [bet]);
+  useEffect(() => {
+    if (phase === 'matchEnd' && matchResult && !economyApplied.current) {
+      economyApplied.current = true;
+      const { balance: newBal, delta } = applyMatchResult(betRef.current, matchResult.outcome);
+      setBalance(newBal);
+      setLastDelta(delta);
+    }
+    if (phase === 'idle') {
+      economyApplied.current = false;
+      setLastDelta(null);
+    }
+  }, [phase, matchResult]);
   const playerCashedOut = state.playerCashed !== null;
   const roundNo = Math.min(rounds.length + (running ? 1 : 0), ROUNDS_PER_MATCH);
 
@@ -139,6 +167,10 @@ export default function App() {
           <span className={`chip ${isBackendConnected ? '' : 'warn'}`}>
             <i className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
             {isBackendConnected ? 'LIVE' : 'LOCAL'}
+          </span>
+          <span className="chip chip-gold" title="Your play-money balance">
+            <i className="dot dot-gold" />
+            {balance.toLocaleString()}
           </span>
           {/* Header controls collapse into one ⋯ sheet (mobile + desktop alike) —
               keeps the bar to brand + 2 status chips + a single menu affordance. */}
@@ -302,7 +334,7 @@ export default function App() {
         </div>
 
         {matchEnd && matchResult ? (
-          <MatchVerdict result={matchResult} />
+          <MatchVerdict result={matchResult} delta={lastDelta} />
         ) : roundEnd && roundResult ? (
           <div className={`verdict ${roundResult.outcome}`} key={state.nonce}>
             <span className="vmain">
@@ -337,10 +369,29 @@ export default function App() {
           <button className="primary rematch" onClick={advance}>
             RUN IT BACK ↻
           </button>
-        ) : (
-          <button className="primary enter" onClick={advance}>
-            ENTER DUEL
+        ) : balance < MIN_BET ? (
+          <button className="primary rebuy" onClick={() => setBalance(rebuy())}>
+            REBUY · 1,000 COINS
           </button>
+        ) : (
+          <>
+            <div className="bet-row">
+              <span className="bet-label">BET</span>
+              {BET_OPTIONS.map((o) => (
+                <button
+                  key={o}
+                  className={`bet-opt ${bet === o ? 'active' : ''} ${balance < o ? 'dim' : ''}`}
+                  onClick={() => balance >= o && setBet(o)}
+                  disabled={balance < o}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+            <button className="primary enter" onClick={advance}>
+              ENTER DUEL · {bet}
+            </button>
+          </>
         )}
         <p className="hint">
           {running
@@ -397,7 +448,7 @@ function ScorePanel({
   );
 }
 
-function MatchVerdict({ result }: { result: MatchResult }) {
+function MatchVerdict({ result, delta }: { result: MatchResult; delta: number | null }) {
   const verdict =
     result.outcome === 'win' ? 'YOU WIN' : result.outcome === 'loss' ? 'YOU LOSE' : 'DRAW';
   const armNote = result.arm === 'drop-lowest' ? 'drop-lowest round' : 'banked points';
@@ -407,9 +458,16 @@ function MatchVerdict({ result }: { result: MatchResult }) {
         <span className="vmain">{verdict}</span>
         <span className="vsub">scoring: {armNote}</span>
       </div>
-      <span className="vscore">
-        {result.playerScore.toFixed(2)} <em>vs</em> {result.ghostScore.toFixed(2)}
-      </span>
+      <div className="vcol" style={{ alignItems: 'flex-end' }}>
+        <span className="vscore">
+          {result.playerScore.toFixed(2)} <em>vs</em> {result.ghostScore.toFixed(2)}
+        </span>
+        {delta !== null && delta !== 0 && (
+          <span className={`vdelta ${delta > 0 ? 'win' : 'loss'}`}>
+            {delta > 0 ? '+' : ''}{delta}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
