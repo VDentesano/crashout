@@ -3,6 +3,7 @@ import './App.css';
 import CurveCanvas from './components/CurveCanvas';
 import Onboarding, { ONBOARD_KEY } from './components/Onboarding';
 import { useCountUp } from './hooks/useCountUp';
+import { useTickPop } from './hooks/useTickPop';
 import { useGameAudio } from './audio/useGameAudio';
 import { useMatch } from './game/useMatch';
 import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
@@ -66,6 +67,10 @@ export default function App() {
   // making greed visible at the focal point. Color is a state class (not a
   // keyframe), so reduced-motion users keep the temperature.
   const heat = running ? (multiplier >= 10 ? 'hot' : multiplier >= 5 ? 'warm' : '') : '';
+
+  // GSAP tick-pop on the live ticker — chrome-only wrapper transform, never the
+  // value. See useTickPop for the cadence/reduced-motion contract.
+  const tickerRef = useTickPop(multiplier, running);
 
   const [showGate, setShowGate] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -259,7 +264,10 @@ export default function App() {
           <CurveCanvas multiplier={multiplier} crashed={showCrashFx} />
           {/* FX-1 — cash-out micro-burst: fires once the instant you lock in. */}
           {running && playerCashedOut && <div className="cashburst" key={`cb-${state.nonce}`} />}
-          <div className={`ticker ${showCrashFx ? 'crash' : running ? 'live' : 'idle'} ${heat}`}>
+          <div
+            ref={tickerRef}
+            className={`ticker ${showCrashFx ? 'crash' : running ? 'live' : 'idle'} ${heat}`}
+          >
             {multiplier.toFixed(2)}
             <span className="x">×</span>
           </div>
