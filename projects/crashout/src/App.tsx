@@ -3,6 +3,7 @@ import './App.css';
 import CurveCanvas from './components/CurveCanvas';
 import Onboarding, { ONBOARD_KEY } from './components/Onboarding';
 import { useCountUp } from './hooks/useCountUp';
+import { useGameAudio } from './audio/useGameAudio';
 import { useMatch } from './game/useMatch';
 import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
 import { ROUNDS_PER_MATCH } from './game/types';
@@ -23,6 +24,7 @@ function pipState(i: number, rounds: RoundRecord[], running: boolean): PipState 
 
 export default function App() {
   const { state, advance, cashOut } = useMatch();
+  const { muted, toggleMute } = useGameAudio(state);
   const { phase, multiplier, roundResult, matchResult, rounds } = state;
   const running = phase === 'running';
   const roundEnd = phase === 'roundEnd';
@@ -112,6 +114,14 @@ export default function App() {
             <i className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
             {isBackendConnected ? 'LIVE' : 'LOCAL'}
           </span>
+          <button
+            className="ghosttoggle"
+            onClick={toggleMute}
+            title={muted ? 'Sound off — tap to unmute' : 'Sound on — tap to mute'}
+            aria-pressed={muted}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
           <button className="ghosttoggle" onClick={() => setShowHelp(true)} title="How to play">
             ?
           </button>
