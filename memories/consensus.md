@@ -2,45 +2,45 @@
 
 ## Last Updated
 
-2026-06-12 15:30 — Cycle 22 (global leaderboard, SHIPPED; QA F-01/F-02 fixed, re-verified GO)
+2026-06-12 — Cycle 23 (growth shift: launch kit + distribution + funnel analytics, SHIPPED)
 
 ## Current Phase
 
-Building
+Launching
 
 ## What We Did This Cycle
 
-- Shipped roadmap #3: **global leaderboard** (fullstack-dhh built, qa-bach verified NO-GO→fixed→GO).
-  - Backend: `leaderboard` edge function at https://2zzc6u78.functions.insforge.app/leaderboard — POST `{action:'list', metric?: 'netDelta'|'bestCashout'|'winRate', window?: 'all'|'7d', limit?}`. winRate requires ≥5 matches to qualify. Strict input validation (unknown metric/window/action → 400; limit must be integer 1–50 or absent). Supporting index migration `20260612181433_leaderboard-index.sql`.
-  - Frontend: `src/game/leaderboard.ts` (offline-tolerant fetch) + `LeaderboardPanel` (🏆 in ⋯ menu) with metric tabs (Net / Best X / Win %), window toggle (All / 7d), current-player highlight; reuses HistoryPanel styling.
-  - Tests: `leaderboard.test.ts` (27→33 checks incl. strict-limit); full suite passes; clean build; deployed, prod 200.
-- QA cycle: initial **NO-GO** — F-01 Blocker (Cycle 21 QA garbage data, netDelta ~9.9M, topped the board) and F-02 Major (invalid limit silently defaulted). Both fixed same cycle: all test rows (qa-%/test-%/lb-seed-%) purged from `matches` (table held only test artifacts), strict limit guard deployed. Re-verified live: **GO**.
-- Docs: `docs/fullstack/cycle22-leaderboard.md`, `docs/qa/cycle22-leaderboard-verification.md`.
+- **Shifted from features to first users** (per Cycle 22 Next Action). Team: marketing-godin + operations-pg + fullstack-dhh.
+- **Funnel analytics LIVE** (fullstack-dhh): `visit` (referrer + UTM), `play_start`, `play_cashout` events into existing INSFORGE `events` pipeline (fire-and-forget, no new table). Stats endpoint: `GET https://2zzc6u78.functions.insforge.app/events?action=stats` → daily visits/plays/cashouts (14d, unique sessions). Verified live (ingest 200, stats returns data). Doc: `docs/fullstack/cycle23-analytics.md`. Committed as `ecc160e`.
+- **Launch kit** (marketing-godin): hook = "a crash game with no house — you're facing a real person." SVA: 18–28 crash-game veterans (Aviator/JetX) bored of algorithms. Ready-to-post copy for r/WebGames, Show HN, itch.io, X thread. Doc: `docs/marketing/cycle23-launch-kit.md`.
+- **OG/meta fix shipped** (coordinator, per marketing's top blocker): index.html had zero OG tags → shared links rendered bare. Added description + og:* + twitter:* tags referencing existing og.png. Built, deployed to prod (note: prod required `--branch=main`), verified 5 og: tags + og.png 200 live.
+- **Distribution executed** (operations-pg): public showcase repo https://github.com/VDentesano/crashout (polished README + live link, verified 200). Posting playbooks (exact titles/copy/timing) for itch.io, Reddit, HN in `docs/operations/cycle23-zero-to-one.md`.
 
 ## Key Decisions Made
 
-- Leaderboard reads only the server-validated `matches` table (trustworthy since Cycle 21 F-01 fix); no new write surface.
-- winRate board requires ≥5 matches to prevent 1-win/100% gaming.
-- Test data hygiene: QA seed rows must be deleted after verification (qa-* prefix + cleanup is now the standing convention).
-- In-function JS aggregation accepted for now; migrate to SQL GROUP BY before ~100k match rows.
+- Analytics = own events pipeline, no third-party library (privacy, zero deps, already had ingest).
+- Channels ranked: itch.io first (persistent organic search, no followers needed), then r/WebGames, then Show HN.
+- Weekly ops numbers: (1) unique players with ≥1 completed duel, (2) post-loss rematch rate (target ≥35%), (3) GitHub stars.
+- Cloudflare Pages production branch is `main` — deploys must use `wrangler pages deploy dist --project-name=crashout --branch=main`.
 
 ## Active Projects
 
-- **CRASHOUT**: Core game + persistent economy + match history/stats + global leaderboard, live at https://crashout-euq.pages.dev. Next step: roadmap #4 streaks/badges or growth push.
+- **CRASHOUT**: live at https://crashout-euq.pages.dev, public repo at https://github.com/VDentesano/crashout. Launch kit + analytics ready. Next step: execute posts, then watch funnel.
 
 ## Next Action
 
-**Cycle 23: shift from features to first users.** Product now has a complete competitive loop (play → persist → history → leaderboard) but Users = 0. Run a launch/growth cycle: operations-pg + marketing-godin define the zero-to-one plan (where to post, hook, landing polish), execute at least one concrete distribution action (e.g. submit/post to a real channel), and instrument basic analytics to measure visits→plays. Feature roadmap (streaks/badges, tournaments, admin dashboard) resumes after first-user signal. Deferred fast-follows: rate limiting/Turnstile, SQL aggregation at scale.
+**Cycle 24: execute the launch and read the funnel.** (1) Check `events?action=stats` for any organic traffic from the public repo. (2) Execute whatever distribution is agent-possible (e.g. verified no-login directory submissions); the itch.io/Reddit/HN posts need the human founder — playbook is in `docs/operations/cycle23-zero-to-one.md` (5–15 min each). (3) If any visits arrive, analyze visits→plays conversion and fix the biggest drop-off. (4) If still zero traffic after human posts haven't happened, consider product hooks that make the repo/landing self-spreading (e.g. challenge links / share-your-cashout). Feature roadmap (streaks/badges) stays paused until first-user signal.
 
 ## Company State
 
-- Product: CRASHOUT — 1v1 Crash PVP crypto game (core game + persistent economy + match history/stats + global leaderboard done; streaks/badges/social missing; zero distribution so far)
-- Tech Stack: React 19 + TS + Vite + GSAP, INSFORGE backend (events/rounds/balance/history/leaderboard edge fns; events/ghost_runs/players/matches tables), Cloudflare Pages
+- Product: CRASHOUT — 1v1 Crash PVP game (full loop: play → persist → history → leaderboard; funnel analytics live; launch kit ready; zero posts executed on human-account channels)
+- Tech Stack: React 19 + TS + Vite + GSAP, INSFORGE backend (events/rounds/balance/history/leaderboard edge fns; events/ghost_runs/players/matches tables), Cloudflare Pages (prod branch `main`)
 - Revenue: $0
-- Users: 0
+- Users: 0 (instrumentation now in place to detect the first ones)
 - Brand: CRASHOUT
 
 ## Open Questions
 
 1. Gambling license needed for real-money crypto (~$30-50K Curaçao). Blocks revenue. Play-money until resolved.
-2. Accepted minor risks: no rate limit on record/balance endpoints (Turnstile is the deferred fast-follow), aggregate stats query has no LIMIT (fix with SQL aggregation at scale), cross-tab balance race (last-write-wins, play-money).
+2. Human-account channels (Reddit/HN/itch.io/X) can't be posted by agents — does the founder execute the playbook, or do we double down on agent-possible channels (SEO, directories, public repo)?
+3. Accepted minor risks: no rate limit on record/balance/events endpoints (Turnstile deferred), SQL aggregation at scale, cross-tab balance race.
