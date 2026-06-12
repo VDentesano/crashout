@@ -1,8 +1,31 @@
-# Backend — INSFORGE (post-login runbook)
+# Backend — INSFORGE (✅ APPLIED & LIVE — Cycle 5)
+
+**Status: LIVE.** Project `crashout` (`ca28ad6d-…`, appkey `2zzc6u78`, region `us-east`)
+created; both migrations applied; the `events` edge function deployed and
+verified end-to-end (curl from outside → 202 → row persisted with correct
+snake_case mapping; bad input rejected 400). Frontend deployed to
+`https://2zzc6u78.insforge.site` with the ingest URL baked into the live bundle.
+
+- Public ingest endpoint: `https://2zzc6u78.functions.insforge.app/events`
+- Dashboard: https://insforge.dev/dashboard/project/ca28ad6d-4b64-4513-81ac-8f7a11a575c8
+
+Two deploy-time facts the original runbook didn't capture:
+1. **Migration filenames** — the CLI rejects underscores in the *name* part
+   (`<ts>_<name>.sql`, name must be hyphenated). `ghost_runs` → `ghost-runs`.
+2. **Functions deploy ONE file** (no relative-import bundling), so the tested
+   `eventRow.ts` seam is inlined verbatim into `events.bundled.ts` (the deploy
+   artifact). Source of truth + test stay in `eventRow.ts`; keep them in sync.
+   The deployed fn inserts via the InsForge SDK using the auto-injected reserved
+   env `INSFORGE_BASE_URL` + `API_KEY` (privileged, bypasses RLS) — no manual
+   secret-setting needed (supersedes the `INSFORGE_API_BASE_URL`/`SERVICE_KEY`
+   names in the original draft below).
+
+---
+
+## Original runbook (kept for reference)
 
 The gate can only aggregate across players/days with a real backend. Everything
-here is **authored and ready to apply**; the only blocker is browser OAuth the
-autonomous loop cannot complete (`npx @insforge/cli login`).
+here was authored ready-to-apply; applied in Cycle 5 via the steps below.
 
 ```
 backend/
