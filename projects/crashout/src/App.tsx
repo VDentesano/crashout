@@ -4,6 +4,7 @@ import CurveCanvas from './components/CurveCanvas';
 import Onboarding, { ONBOARD_KEY } from './components/Onboarding';
 import { useCountUp } from './hooks/useCountUp';
 import { useTickPop } from './hooks/useTickPop';
+import { useSidebarReveal } from './hooks/useSidebarReveal';
 import { useGameAudio } from './audio/useGameAudio';
 import { useMatch } from './game/useMatch';
 import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
@@ -71,6 +72,10 @@ export default function App() {
   // GSAP tick-pop on the live ticker — chrome-only wrapper transform, never the
   // value. See useTickPop for the cadence/reduced-motion contract.
   const tickerRef = useTickPop(multiplier, running);
+
+  // Desktop Dynamic Island reveal — staggers the rail rows in on mount (>=1024px,
+  // no-reduced-motion). No-op on mobile where the rail is display:contents.
+  const railRef = useSidebarReveal();
 
   const [showGate, setShowGate] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -180,6 +185,10 @@ export default function App() {
         </div>
       </header>
 
+      {/* Dynamic Island rail — display:contents on mobile (children flow as
+          stacked rows); a floating glass sidebar on desktop (>=1024px). Holds
+          the best-of-5 ladder + live standing. */}
+      <aside className="rail" ref={railRef}>
       {/* Ladder rail — best-of-5 progress */}
       <div className="ladder">
         <span className="ladder-label">
@@ -222,6 +231,7 @@ export default function App() {
             line carries the live read once a duel is underway). Always in the ? overlay. */}
         {!inMatch && <p className="rule">{scoringRule}</p>}
       </div>
+      </aside>
 
       <main className="arena">
         <div className="opponents">

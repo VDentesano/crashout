@@ -12,6 +12,12 @@
   animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
+/* Rail wrapper — invisible on mobile (its children, ladder + matchinfo, flow as
+   normal grid rows of .app). Becomes the glass Dynamic Island on desktop. */
+.rail {
+  display: contents;
+}
+
 .redflash {
   position: fixed;
   inset: 0;
@@ -809,5 +815,70 @@
 @media (max-width: 560px) {
   .legend {
     display: none;
+  }
+}
+
+/* ── Desktop layout (>=1024px) — sidebar + arena, not a stretched column ──
+   The viewport splits into a persistent left Dynamic Island (ladder + standing)
+   and a central arena (header strip + score panels + stage + verdict + CTA).
+   Right scoreboard column deferred to Phase 2 (needs real opponent data). */
+@media (min-width: 1024px) {
+  .app {
+    max-width: 1120px;
+    grid-template-columns: 264px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rail head"
+      "rail stage"
+      "rail ctl";
+    gap: 16px 22px;
+    padding: clamp(18px, 3vw, 32px);
+  }
+  .hud {
+    grid-area: head;
+  }
+  .arena {
+    grid-area: stage;
+  }
+  .controls {
+    grid-area: ctl;
+  }
+
+  /* Dynamic Island — full-height floating glass material (Cycle 13 §4). */
+  .rail {
+    grid-area: rail;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-self: stretch;
+    padding: 20px 18px;
+    background: rgba(18, 18, 30, 0.82);
+    backdrop-filter: blur(28px) saturate(1.7);
+    -webkit-backdrop-filter: blur(28px) saturate(1.7);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom-color: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      0 8px 32px rgba(0, 0, 0, 0.6),
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 0 60px rgba(0, 255, 133, 0.04);
+  }
+
+  /* Inside the island the ladder stacks vertically and the standing anchors to
+     the bottom — status at a glance, with the live read held at the base. */
+  .ladder {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .pips {
+    height: 8px;
+  }
+  .pip {
+    height: 8px;
+  }
+  .matchinfo {
+    margin-top: auto;
   }
 }
