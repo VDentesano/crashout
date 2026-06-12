@@ -2,23 +2,26 @@
 
 ## Last Updated
 
-2026-06-13 — Cycle 14: SHIPPED Milestone 1 step 1 — visual system overhaul (pure CSS), LIVE.
+2026-06-13 — Cycle 15: SHIPPED Milestone 1 #8 — header collapse into ⋯ sheet, ∑ gate stripped from prod, LIVE.
 
 ## Current Phase
 
-Building (redesign execution underway — visual foundation shipped)
+Building (redesign execution underway — visual foundation + header IA shipped)
 
-## What We Did This Cycle (Cycle 14)
+## What We Did This Cycle (Cycle 15)
 
-- Executed the default Next Action: Milestone 1 step 1, visual system overhaul. Pure CSS, zero logic touched, zero legal risk.
-- Deeper surface ladder in `index.css` `:root`: `--bg #060609`, `--bg-raise #0e0e18`, `--panel #121221`, `--surface-hi`, three-tier borders (`--line-faint/line/line-bright`). Added accent economy (`--accent` violet, `--gold`) — wired now, surfaced as features land.
-- Background atmosphere: layered volt floor-glow + violet depth wash + visible scan grid + vertical void gradient (was a near-invisible whisper).
-- Panel material (`.panel`): gradient surface + inner top highlight + grounding shadow (Elevation 2) — panels now float.
-- Stage/arena material: atmospheric radial volt+violet gradients (was a flat dark box).
-- Button hierarchy: `.primary.next` (NEXT ROUND) now understated outlined/ghost; CASH OUT keeps the only full-bright fill.
-- Build green (`pnpm build`), deployed to Cloudflare Pages → https://crashout-euq.pages.dev (deploy d183fee8).
+- Executed the default Next Action: Milestone 1 #8 mobile header collapse. Pure UI (App.tsx + App.css), zero game logic touched, zero legal risk.
+- Collapsed the three inline icon buttons (🔊 / ? / ∑) into ONE `⋯` settings sheet — unified for mobile + desktop. Header now reads brand + 2 status chips (FAIR / LIVE) + single menu affordance.
+- Sheet is an anchored popover (`.sheet`): Sound on/off toggle, How to play, and a DEV-only Gate instrument row. Click-away backdrop closes it; `sheet-in` micro-animation; full a11y roles (menu/menuitem/menuitemcheckbox).
+- **Stripped `∑` gate instrument from production**: render guarded by `import.meta.env.DEV` — verified tree-shaken out of the prod bundle (grep = 0 matches). Devs keep it locally.
+- Build green (`pnpm build`), deployed to Cloudflare Pages → https://crashout-euq.pages.dev (deploy 4521b195). Commit Cycle 15.
 
-## What We Did Last Cycle (Cycle 13 — analysis)
+## What We Did Cycle 14
+
+- Milestone 1 step 1, visual system overhaul. Pure CSS, zero logic touched.
+- Deeper surface ladder in `index.css` `:root`; background atmosphere; panel/stage material; button hierarchy (CASH OUT = only full-bright fill). Deploy d183fee8.
+
+## What We Did Cycle 13 (analysis)
 
 - Ran the requested analysis-only cycle (NO code) with 4 agents in parallel:
   - `docs/interaction/cycle13-flows-and-ia.md` — personas, onboarding (ghost→wallet) flow, multi-game IA, Dynamic Island states, taunts.
@@ -39,14 +42,13 @@ Building (redesign execution underway — visual foundation shipped)
 
 ## Active Projects
 
-- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Visual foundation (Milestone 1 step 1) shipped. Next: continue Milestone 1 — step 7 button hierarchy ✓done, then #8 mobile header collapse, #2/#1 already in. GSAP motion layer (#3 ticker pop) and desktop layout split (#4/#5) remain.
+- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8). Remaining in Milestone 1: GSAP motion layer (#3 ticker pop) and desktop layout split (#4/#5).
 
 ## Next Action
 
-**Continue Milestone 1 "PROFESSIONAL" build** (priority order from `docs/ui/cycle13-visual-system.md` §7). Steps 1, 2, 6, 7 shipped Cycle 14. Next highest-value, still play-money-safe:
-1. **#8 Mobile header collapse** — strip chips to a `⋯` settings sheet, delete `∑` gate button from prod (pure CSS/TSX, no legal risk).
-2. **#3 GSAP ticker tick-pop** — install GSAP, add the scale-pop on each multiplier tick (the single biggest "feels alive" moment). Chrome-only — NEVER animate the curve canvas/ticker rAF loop's value, only a wrapper transform.
-3. Then #4/#5 desktop layout split + Dynamic Island (larger refactor).
+**Continue Milestone 1 "PROFESSIONAL" build** (priority order from `docs/ui/cycle13-visual-system.md` §7). Steps #1, #2, #6, #7, #8 shipped. Next highest-value, still play-money-safe:
+1. **#3 GSAP ticker tick-pop** — install GSAP (pnpm), add the scale-pop on each multiplier tick (the single biggest "feels alive" moment). Chrome-only — NEVER animate the curve canvas/ticker rAF loop's value, only a wrapper transform. Use `gsap.matchMedia()` for prefers-reduced-motion.
+2. Then #4/#5 desktop layout split + Dynamic Island (larger refactor).
 
 Legal/crypto work stays PAUSED pending gambling-license escalation (still open).
 
