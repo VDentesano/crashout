@@ -97,6 +97,27 @@ export default async function (request: Request): Promise<Response> {
   if (!baseUrl || !apiKey) return json(500, { error: 'backend env not configured' });
 
   const client = createClient({ baseUrl, anonKey: apiKey });
+
+  // Rate-limit per player_id: a 5-round match emits ~18-20 events; a fast human
+  // tops out near 40-60/min. Cap at 120/min — generous for humans, blunt for
+  // bots flooding fake match_result/rematch rows that would pollute the gate.
+  // KNOWN LIMIT (pre-traffic, accepted): player_id is client-set, so a bot can
+  // rotate it to evade. IP-based limiting + Turnstile is the fast-follow. We
+  // FAIL OPEN on a count error — never drop a legit gate event over a flaky read.
+  const RATE_CAP = 120;
+  const cutoff = new Date(Date.now() - 60_000).toISOString();
+  // Fetch up to CAP+1 ids and count the array — robust across SDK count-option
+  // quirks. The (player_id, created_at) index keeps this cheap.
+  const { data: recent, error: countErr } = await client.database
+    .from('events')
+    .select('id')
+    .eq('player_id', built.rows[0].player_id)
+    .gte('created_at', cutoff)
+    .limit(RATE_CAP + 1);
+  if (!countErr && Array.isArray(recent) && recent.length >= RATE_CAP) {
+    return json(429, { error: 'rate limited' });
+  }
+
   const { error } = await client.database.from('events').insert(built.rows);
 
   if (error) {

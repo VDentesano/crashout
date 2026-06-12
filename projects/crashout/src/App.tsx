@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import CurveCanvas from './components/CurveCanvas';
 import { useMatch } from './game/useMatch';
-import { decideOutcome } from './game/ghosts';
+import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
 import { ROUNDS_PER_MATCH } from './game/types';
 import type { MatchResult, RoundRecord } from './game/types';
 import { isBackendConnected, localGateReadout } from './analytics/logger';
@@ -29,6 +29,24 @@ export default function App() {
   const matchEnd = phase === 'matchEnd' && matchResult !== null;
   const playerCashedOut = state.playerCashed !== null;
   const roundNo = Math.min(rounds.length + (running ? 1 : 0), ROUNDS_PER_MATCH);
+
+  // Arm-correct live scores. A raw sum LIES under the drop-lowest arm (it counts
+  // the round that won't), so both sides roll up through scoreMatch — the exact
+  // rule that decides the match. At match end the resolved scores are authoritative.
+  const playerLive = matchEnd
+    ? matchResult!.playerScore
+    : scoreMatch(rounds.map((r) => roundScore(r.player)), state.arm);
+  const ghostLive = matchEnd
+    ? matchResult!.ghostScore
+    : scoreMatch(rounds.map((r) => roundScore(r.ghost)), state.arm);
+  const gap = playerLive - ghostLive;
+  const leader = gap > 0.001 ? 'you' : gap < -0.001 ? 'ghost' : 'tied';
+  const roundsLeft = ROUNDS_PER_MATCH - roundNo;
+  const inMatch = phase !== 'idle';
+  const scoringRule =
+    state.arm === 'drop-lowest'
+      ? 'Most points wins — your best 4 of 5 rounds count (worst dropped). A crash scores 0.'
+      : 'Most points across 5 rounds wins. Each round banks your cash-out; a crash scores 0.';
 
   // When paused on a resolved round (roundEnd / matchEnd), paint the crash FX
   // only if the player busted that round.
@@ -60,10 +78,20 @@ export default function App() {
           CRASH<span>OUT</span>
         </div>
         <div className="hud-right">
-          <span className="chip" title="Provably fair — verify the seed after the round">
-            <i className="dot volt" /> FAIR
-            <code>{state.proof ? state.proof.serverSeedHash.slice(0, 8) : '········'}</code>
-          </span>
+          {state.fairMode === 'server' ? (
+            <span
+              className="chip"
+              title="Provably fair — the server commits the seed (hash shown) before the round and reveals it after, so you can verify the crash wasn't chosen."
+            >
+              <i className={`dot ${state.fairVerified === false ? 'crash' : 'volt'}`} />
+              {state.fairVerified ? 'FAIR ✓' : 'PROVABLY FAIR'}
+              <code>{state.proof ? state.proof.serverSeedHash.slice(0, 8) : '········'}</code>
+            </span>
+          ) : (
+            <span className="chip warn" title="Local demo RNG — play money, not server-verified">
+              <i className="dot" /> DEMO RNG
+            </span>
+          )}
           <span className={`chip ${isBackendConnected ? '' : 'warn'}`}>
             <i className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
             {isBackendConnected ? 'LIVE' : 'LOCAL'}
@@ -84,6 +112,32 @@ export default function App() {
             <span key={i} className={`pip ${pipState(i, rounds, running)}`} />
           ))}
         </div>
+        <div className="legend" aria-hidden>
+          <span><i className="ldot win" />won</span>
+          <span><i className="ldot loss" />lost</span>
+          <span><i className="ldot draw" />drawn</span>
+        </div>
+      </div>
+
+      {/* Match status — who's ahead, rounds left, and the rule in plain words */}
+      <div className="matchinfo">
+        {inMatch ? (
+          <div className="standing">
+            <span className={`lead ${leader}`}>
+              {leader === 'you' ? 'YOU LEAD' : leader === 'ghost' ? 'GHOST LEADS' : 'TIED'}
+            </span>
+            {leader !== 'tied' && <span className="gap">+{Math.abs(gap).toFixed(2)}</span>}
+            <span className="left">
+              {roundsLeft <= 0 ? 'final round' : `${roundsLeft} ${roundsLeft === 1 ? 'round' : 'rounds'} left`}
+            </span>
+          </div>
+        ) : (
+          <div className="standing">
+            <span className="lead tied">BEST OF 5</span>
+            <span className="left">highest score wins</span>
+          </div>
+        )}
+        <p className="rule">{scoringRule}</p>
       </div>
 
       <main className="arena">
@@ -91,7 +145,7 @@ export default function App() {
           <ScorePanel
             who="GHOST"
             name={state.ghostName || 'matching…'}
-            score={matchEnd ? matchResult!.ghostScore : state.ghostLiveScore}
+            score={ghostLive}
             roundLine={
               matchEnd
                 ? null
@@ -107,7 +161,7 @@ export default function App() {
           <ScorePanel
             who="YOU"
             name="you"
-            score={matchEnd ? matchResult!.playerScore : state.playerLiveScore}
+            score={playerLive}
             roundLine={
               matchEnd
                 ? null
@@ -184,6 +238,9 @@ export default function App() {
             : matchEnd
               ? 'highest match score wins. a crash only zeroes that round.'
               : 'best-of-5 ladder · highest cumulative score takes the duel.'}
+        </p>
+        <p className="cryptosoon">
+          Play money — <strong>on-chain crypto duels coming soon.</strong>
         </p>
       </footer>
 

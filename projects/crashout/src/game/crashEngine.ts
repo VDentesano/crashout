@@ -62,6 +62,24 @@ export async function generateRound(clientSeed: string, nonce: number): Promise<
   };
 }
 
+/**
+ * Verify a revealed round: the server's seed hashes to its committed hash, and
+ * the crash point was derived from it (not chosen). This is what makes the
+ * "PROVABLY FAIR" claim true — anyone can re-run it on the revealed seeds.
+ */
+export async function verifyReveal(r: {
+  serverSeed: string;
+  serverSeedHash: string;
+  clientSeed: string;
+  nonce: number;
+  crashPoint: number;
+}): Promise<boolean> {
+  const hashOK = (await sha256Hex(r.serverSeed)) === r.serverSeedHash;
+  const roundHash = await hmacSha256Hex(r.serverSeed, `${r.clientSeed}:${r.nonce}`);
+  const crashOK = crashPointFromHash(roundHash) === r.crashPoint;
+  return hashOK && crashOK;
+}
+
 /** Multiplier shown at elapsed time `ms` into the round. */
 export function multiplierAt(ms: number): number {
   return Math.floor(100 * Math.exp(GROWTH_RATE * ms)) / 100;

@@ -9,6 +9,28 @@ snake_case mapping; bad input rejected 400). Frontend deployed to
 - Public ingest endpoint: `https://2zzc6u78.functions.insforge.app/events`
 - Dashboard: https://insforge.dev/dashboard/project/ca28ad6d-4b64-4513-81ac-8f7a11a575c8
 
+### Cycle 7 additions (✅ deployed & verified)
+
+- **`rounds` edge function** (`functions/rounds/index.ts`) — server-authoritative
+  seed commit/reveal for "provably fair." Public URL
+  `https://2zzc6u78.functions.insforge.app/rounds`. Two POST actions:
+  - `{action:'start', matchToken, playerId, clientSeed, count}` → generates
+    `count` serverSeeds server-side, stores them in `public.rounds`, returns
+    `{roundToken, serverSeedHash, crashPoint, nonce}[]` with the **seed withheld**.
+  - `{action:'reveal', matchToken}` → returns the seeds so the client can verify
+    `sha256(serverSeed)===serverSeedHash` and that `crashPoint` was derived.
+  - Deploy is self-contained (no relative imports): `functions deploy rounds
+    --file backend/functions/rounds/index.ts`. Crash math is inlined and MUST
+    stay identical to `src/game/crashEngine.ts`.
+  - Schema: `migrations/20260611130000_rounds.sql` (RLS on, no anon policy —
+    server_seed is reachable only via this function's privileged key).
+  - Client wires it via `src/game/server.ts`; the rounds URL is **derived** from
+    `VITE_INSFORGE_EVENTS_URL` (`/events`→`/rounds`), so no extra env var.
+- **`events` rate-limit** — the deployed `events.bundled.ts` caps **120
+  events/min per player_id** (windowed count on the `(player_id, created_at)`
+  index, fails open). Known pre-traffic limit: player_id is client-set;
+  IP-limit + Turnstile is the fast-follow.
+
 Two deploy-time facts the original runbook didn't capture:
 1. **Migration filenames** — the CLI rejects underscores in the *name* part
    (`<ts>_<name>.sql`, name must be hyphenated). `ghost_runs` → `ghost-runs`.

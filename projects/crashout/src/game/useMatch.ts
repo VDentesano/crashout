@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { generateRound, multiplierAt, timeToReach } from './crashEngine';
+import { generateRound, multiplierAt, timeToReach, verifyReveal } from './crashEngine';
 import {
   decideMatch,
   decideOutcome,
@@ -18,11 +18,14 @@ import type {
   RoundRecord,
   RoundResult,
 } from './types';
-import { arm, logMatchResult, logRoundResult, track } from '../analytics/logger';
+import { arm, logMatchResult, logRoundResult, playerId, track } from '../analytics/logger';
+import { commitMatch, revealMatch, SERVER_FAIR, type CommitRound } from './server';
 
 const CLIENT_SEED = 'crashout-v0';
 
 export type MatchPhase = 'idle' | 'running' | 'roundEnd' | 'matchEnd';
+/** Where the round's crash came from — server-committed (verifiable) or local RNG. */
+export type FairMode = 'server' | 'local';
 
 interface MatchState {
   phase: MatchPhase;
@@ -30,16 +33,15 @@ interface MatchState {
   roundIndex: number; // 0-based, current round in the match
   multiplier: number;
   ghostName: string;
-  ghostLiveTarget: number | null; // ghost's intent this round (live tension), null once cashed/busted
-  ghostCashed: number | null; // ghost cash-out this round
+  ghostCashed: number | null; // ghost cash-out this round — revealed only at round end
   playerCashed: number | null; // player cash-out this round
-  playerLiveScore: number; // banked sum so far (raw, pre-arm)
-  ghostLiveScore: number; // banked sum so far (raw, pre-arm)
   rounds: RoundRecord[]; // resolved rounds this match
   roundResult: RoundResult | null; // last resolved round (per-round badge)
   matchResult: MatchResult | null;
   proof: FairProof | null;
   nonce: number;
+  fairMode: FairMode; // drives the "PROVABLY FAIR" vs "DEMO RNG" label
+  fairVerified: boolean | null; // null = not yet revealed; set after match end
 }
 
 export function useMatch() {
@@ -49,16 +51,15 @@ export function useMatch() {
     roundIndex: 0,
     multiplier: 1.0,
     ghostName: '',
-    ghostLiveTarget: null,
     ghostCashed: null,
     playerCashed: null,
-    playerLiveScore: 0,
-    ghostLiveScore: 0,
     rounds: [],
     roundResult: null,
     matchResult: null,
     proof: null,
     nonce: 0,
+    fairMode: SERVER_FAIR ? 'server' : 'local',
+    fairVerified: null,
   });
 
   const startTs = useRef(0);
@@ -67,11 +68,13 @@ export function useMatch() {
   const roundIndexRef = useRef(0);
   const roundsRef = useRef<RoundRecord[]>([]);
   const playerCashedRef = useRef<number | null>(null);
-  const ghostCashedRef = useRef<number | null>(null);
   const resolvedRef = useRef(false);
   const nonceRef = useRef(0);
   const phaseRef = useRef<MatchPhase>('idle');
   const matchResultRef = useRef<MatchResult | null>(null);
+  // Server-committed rounds for the current match (null = local-RNG fallback).
+  const commitsRef = useRef<CommitRound[] | null>(null);
+  const matchTokenRef = useRef<string | null>(null);
 
   // Mirror progression-relevant state into refs so `advance` can stay pure.
   useEffect(() => {
@@ -112,6 +115,20 @@ export function useMatch() {
     });
 
     setState((s) => ({ ...s, phase: 'matchEnd', matchResult }));
+
+    // Reveal the committed seeds and verify the round was provably fair. Runs
+    // after the match resolves; non-blocking — purely populates the FAIR badge.
+    const matchToken = matchTokenRef.current;
+    if (commitsRef.current && matchToken) {
+      revealMatch(matchToken).then(async (revealed) => {
+        if (!revealed || revealed.length === 0) {
+          setState((s) => ({ ...s, fairVerified: false }));
+          return;
+        }
+        const checks = await Promise.all(revealed.map((r) => verifyReveal(r)));
+        setState((s) => ({ ...s, fairVerified: checks.every(Boolean) }));
+      });
+    }
   }, []);
 
   const resolveRound = useCallback(() => {
@@ -157,10 +174,8 @@ export function useMatch() {
       ...s,
       phase: isLast ? 'running' : 'roundEnd', // matchEnd is set by resolveMatch below
       multiplier: proof.crashPoint,
-      ghostCashed: ghostOut.multiplier,
+      ghostCashed: ghostOut.multiplier, // ghost's cash-out is revealed now, not live
       playerCashed: player.multiplier,
-      playerLiveScore: s.playerLiveScore + roundScore(player),
-      ghostLiveScore: s.ghostLiveScore + roundScore(ghostOut),
       rounds: roundsRef.current,
       roundResult,
     }));
@@ -178,8 +193,6 @@ export function useMatch() {
     const loop = () => {
       if (resolvedRef.current) return;
       const proof = proofRef.current!;
-      const run = runRef.current!;
-      const intent = run.intents[roundIndexRef.current];
       const elapsed = performance.now() - startTs.current;
 
       if (elapsed >= timeToReach(proof.crashPoint)) {
@@ -187,20 +200,11 @@ export function useMatch() {
         return;
       }
 
-      const m = multiplierAt(elapsed);
-
-      // Ghost cashes out live the instant the rising multiplier passes its intent.
-      if (
-        ghostCashedRef.current === null &&
-        intent !== null &&
-        m >= intent &&
-        intent < proof.crashPoint
-      ) {
-        ghostCashedRef.current = intent;
-        setState((s) => ({ ...s, ghostCashed: intent, ghostLiveTarget: null }));
-      }
-
-      setState((s) => ({ ...s, multiplier: m }));
+      // Render the rising multiplier only. The ghost's cash-out is NOT revealed
+      // live — showing it turns the duel into arithmetic ("opponent is at 1.4x,
+      // I just need 1.5x") and corrupts the bail-vs-greed signal we measure.
+      // The ghost stays "riding…" until the round resolves (see App.tsx).
+      setState((s) => ({ ...s, multiplier: multiplierAt(elapsed) }));
       frame = requestAnimationFrame(loop);
     };
     frame = requestAnimationFrame(loop);
@@ -209,19 +213,35 @@ export function useMatch() {
 
   const startRound = useCallback(async (index: number) => {
     const run = runRef.current!;
+    const commits = commitsRef.current;
 
-    const nextNonce = nonceRef.current + 1;
-    nonceRef.current = nextNonce;
-    const proof = await generateRound(CLIENT_SEED, nextNonce);
+    let proof: FairProof;
+    if (commits && commits[index]) {
+      // Server-committed round: we have the hash (commitment) + crashPoint (to
+      // animate the curve), but NOT the seed — it's revealed at match end.
+      const c = commits[index];
+      proof = {
+        serverSeed: '', // withheld until reveal
+        serverSeedHash: c.serverSeedHash,
+        clientSeed: CLIENT_SEED,
+        nonce: c.nonce,
+        crashPoint: c.crashPoint,
+      };
+      nonceRef.current = c.nonce;
+    } else {
+      // Local fallback (no backend): generate a full round in the browser.
+      const nextNonce = nonceRef.current + 1;
+      nonceRef.current = nextNonce;
+      proof = await generateRound(CLIENT_SEED, nextNonce);
+    }
 
     proofRef.current = proof;
     roundIndexRef.current = index;
     playerCashedRef.current = null;
-    ghostCashedRef.current = null;
     resolvedRef.current = false;
     startTs.current = performance.now();
 
-    track('round_start', { nonce: nextNonce, matchRound: index + 1, ghost: run.name });
+    track('round_start', { nonce: proof.nonce, matchRound: index + 1, ghost: run.name });
 
     setState((s) => ({
       ...s,
@@ -229,27 +249,34 @@ export function useMatch() {
       roundIndex: index,
       multiplier: 1.0,
       ghostName: run.name,
-      ghostLiveTarget: run.intents[index],
       ghostCashed: null,
       playerCashed: null,
       roundResult: null,
       proof,
-      nonce: nextNonce,
+      nonce: proof.nonce,
     }));
   }, []);
 
-  const enterMatch = useCallback(() => {
+  const enterMatch = useCallback(async () => {
     const run = pickGhostRun();
     runRef.current = run;
     roundsRef.current = [];
+
+    // Commit all rounds server-side in one round-trip (provably fair). On any
+    // failure we fall back to local RNG and the FAIR chip reads "DEMO RNG".
+    const matchToken = crypto.randomUUID();
+    matchTokenRef.current = matchToken;
+    const commits = await commitMatch(matchToken, playerId, CLIENT_SEED, ROUNDS_PER_MATCH);
+    commitsRef.current = commits;
+
     setState((s) => ({
       ...s,
       ghostName: run.name,
-      playerLiveScore: 0,
-      ghostLiveScore: 0,
       rounds: [],
       roundResult: null,
       matchResult: null,
+      fairMode: commits ? 'server' : 'local',
+      fairVerified: null,
     }));
     startRound(0);
   }, [startRound]);

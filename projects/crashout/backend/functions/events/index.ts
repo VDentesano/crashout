@@ -10,6 +10,11 @@
 //
 // Deno runtime. Public URL once deployed: https://<project>.insforge.dev/functions/events
 // Env (set as function secrets after login): INSFORGE_API_BASE_URL, INSFORGE_SERVICE_KEY
+//
+// NOTE: the DEPLOYED artifact is `events.bundled.ts` (see README). It uses the
+// reserved INSFORGE_BASE_URL/API_KEY env + the SDK, and carries the Cycle-7
+// per-player rate-limit (120/min). This file is the reference seam; the
+// rate-limit lives only in the bundled deploy artifact.
 import { buildEventRows } from './eventRow.ts';
 
 const CORS = {
