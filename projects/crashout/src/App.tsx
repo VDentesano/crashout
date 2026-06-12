@@ -23,6 +23,8 @@ import {
   MIN_BET,
   rebuy,
 } from './game/economy';
+import { recordMatch } from './game/history';
+import HistoryPanel from './components/HistoryPanel';
 
 function fmt(m: number | null): string {
   return m === null ? 'BUST' : `${m.toFixed(2)}×`;
@@ -63,6 +65,17 @@ export default function App() {
       const { balance: newBal, delta } = applyMatchResult(betRef.current, matchResult.outcome, setBalance);
       setBalance(newBal);
       setLastDelta(delta);
+      // Record match history — fire-and-forget, silent on failure.
+      const lastRound = matchResult.rounds[matchResult.rounds.length - 1];
+      if (lastRound) {
+        recordMatch({
+          bet: betRef.current,
+          outcome: matchResult.outcome,
+          crashPoint: lastRound.crashPoint,
+          cashoutMultiplier: lastRound.player.multiplier,
+          delta,
+        });
+      }
     }
     if (phase === 'idle') {
       economyApplied.current = false;
@@ -124,6 +137,7 @@ export default function App() {
   const [showGate, setShowGate] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(ONBOARD_KEY));
+  const [showHistory, setShowHistory] = useState(false);
 
   const closeHelp = () => {
     localStorage.setItem(ONBOARD_KEY, '1');
@@ -201,6 +215,17 @@ export default function App() {
                   <button className="sheet-row" onClick={toggleMute} role="menuitemcheckbox" aria-checked={!muted}>
                     <span className="sheet-ico">{muted ? '🔇' : '🔊'}</span>
                     Sound <b>{muted ? 'off' : 'on'}</b>
+                  </button>
+                  <button
+                    className="sheet-row"
+                    onClick={() => {
+                      setShowHistory(true);
+                      setShowMenu(false);
+                    }}
+                    role="menuitem"
+                  >
+                    <span className="sheet-ico">📋</span>
+                    Match history
                   </button>
                   <button
                     className="sheet-row"
@@ -416,6 +441,7 @@ export default function App() {
       </footer>
 
       {import.meta.env.DEV && showGate && <GatePanel />}
+      {showHistory && <HistoryPanel onClose={() => setShowHistory(false)} />}
       {showHelp && <Onboarding onClose={closeHelp} />}
     </div>
   );
