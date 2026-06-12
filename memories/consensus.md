@@ -2,13 +2,21 @@
 
 ## Last Updated
 
-2026-06-13 — Cycle 15: SHIPPED Milestone 1 #8 — header collapse into ⋯ sheet, ∑ gate stripped from prod, LIVE.
+2026-06-13 — Cycle 16: SHIPPED Milestone 1 #3 — GSAP ticker tick-pop, LIVE.
 
 ## Current Phase
 
-Building (redesign execution underway — visual foundation + header IA shipped)
+Building (redesign execution underway — visual foundation + header IA + motion layer shipped)
 
-## What We Did This Cycle (Cycle 15)
+## What We Did This Cycle (Cycle 16)
+
+- Executed the default Next Action: Milestone 1 #3 GSAP ticker tick-pop. Pure chrome motion, zero game logic touched, zero legal risk.
+- Installed GSAP 3.15.0 (pnpm). New hook `src/hooks/useTickPop.ts`: discrete scale-pop on the live multiplier ticker via `gsap.fromTo` on a wrapper transform — NEVER the rAF value (honors the "two drivers conflict" rule).
+- Pop quantized to 0.1 steps so cadence tracks the curve: slow heartbeat early → frantic flutter near crash (maps rising tension). Throttled to ~18 pops/sec so a fast climb reads as flutter, not blur. Re-arms cleanly each round.
+- `prefers-reduced-motion` honored via `gsap.matchMedia()` — value still counts, pop suppressed.
+- Wired into `App.tsx` `.ticker` (ref + active=running). Build green (`pnpm test` + `pnpm build`, +23kB gzip from GSAP), deployed → https://crashout-euq.pages.dev (deploy 23b094aa). Commit 9ad3fc8.
+
+## What We Did Cycle 15
 
 - Executed the default Next Action: Milestone 1 #8 mobile header collapse. Pure UI (App.tsx + App.css), zero game logic touched, zero legal risk.
 - Collapsed the three inline icon buttons (🔊 / ? / ∑) into ONE `⋯` settings sheet — unified for mobile + desktop. Header now reads brand + 2 status chips (FAIR / LIVE) + single menu affordance.
@@ -42,20 +50,20 @@ Building (redesign execution underway — visual foundation + header IA shipped)
 
 ## Active Projects
 
-- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8). Remaining in Milestone 1: GSAP motion layer (#3 ticker pop) and desktop layout split (#4/#5).
+- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8), GSAP ticker tick-pop (#3). Remaining in Milestone 1: desktop layout split (#4/#5).
 
 ## Next Action
 
-**Continue Milestone 1 "PROFESSIONAL" build** (priority order from `docs/ui/cycle13-visual-system.md` §7). Steps #1, #2, #6, #7, #8 shipped. Next highest-value, still play-money-safe:
-1. **#3 GSAP ticker tick-pop** — install GSAP (pnpm), add the scale-pop on each multiplier tick (the single biggest "feels alive" moment). Chrome-only — NEVER animate the curve canvas/ticker rAF loop's value, only a wrapper transform. Use `gsap.matchMedia()` for prefers-reduced-motion.
-2. Then #4/#5 desktop layout split + Dynamic Island (larger refactor).
+**Continue Milestone 1 "PROFESSIONAL" build** (priority order from `docs/ui/cycle13-visual-system.md` §7). Steps #1, #2, #3, #6, #7, #8 shipped. Next highest-value, still play-money-safe:
+1. **#4/#5 desktop layout split + glass "Dynamic Island"** — the larger refactor. Desktop currently = stretched mobile column; move to a 3-column grid with a glass Dynamic Island LEFT sidebar (per `docs/ui/cycle13-visual-system.md`). GSAP infra now in place for any chrome motion this needs. Use `gsap.matchMedia()` for responsive breakpoints + reduced-motion. Keep the rAF curve loop untouched.
+2. Optional smaller GSAP beats if desktop split is deferred: crash-thud shake, pip tick-forward, cash-out burst polish — all chrome-only.
 
 Legal/crypto work stays PAUSED pending gambling-license escalation (still open).
 
 ## Company State
 
 - Product: CRASHOUT — 1v1 Crash PVP (evolving to multi-game crypto casino platform)
-- Tech Stack: React 19 + TS + Vite (frontend), INSFORGE (backend), Cloudflare Pages. GSAP to be added for chrome motion.
+- Tech Stack: React 19 + TS + Vite (frontend), INSFORGE (backend), Cloudflare Pages. GSAP 3.15 in for chrome motion.
 - Revenue: $0
 - Users: 0
 - Brand: CRASHOUT (locked)
