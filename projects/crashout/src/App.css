@@ -1,0 +1,445 @@
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 22px);
+  gap: 12px;
+  position: relative;
+}
+.app.is-crashed {
+  animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.redflash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 40%, rgba(255, 59, 48, 0.9), transparent 65%);
+  animation: flash-red 0.5s ease-out forwards;
+}
+
+/* ── HUD ───────────────────────────────────────────── */
+.hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  font-weight: 700;
+  font-size: clamp(20px, 5vw, 28px);
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+.brand span {
+  color: var(--volt);
+  text-shadow: 0 0 18px rgba(0, 255, 133, 0.6);
+}
+.hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 6px 9px;
+  border-radius: 999px;
+}
+.chip code {
+  font-family: var(--font-mono);
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.chip.warn {
+  color: #ffb4af;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot.volt {
+  background: var(--volt);
+  box-shadow: 0 0 8px var(--volt);
+}
+.dot.crash {
+  background: var(--crash);
+  box-shadow: 0 0 8px var(--crash);
+}
+.ghosttoggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 15px;
+}
+.ghosttoggle:hover {
+  color: var(--volt);
+  border-color: var(--volt-dim);
+}
+
+/* ── Ladder rail (best-of-5) ───────────────────────── */
+.ladder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ladder-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+.pips {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.pip {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+.pip.win {
+  background: var(--volt);
+  box-shadow: 0 0 10px rgba(0, 255, 133, 0.5);
+}
+.pip.loss {
+  background: var(--crash);
+  box-shadow: 0 0 10px rgba(255, 59, 48, 0.45);
+}
+.pip.draw {
+  background: var(--muted);
+}
+.pip.current {
+  background: var(--volt-dim);
+  animation: pip-pulse 1.1s ease-in-out infinite;
+}
+@keyframes pip-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* ── Arena ─────────────────────────────────────────── */
+.arena {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  min-height: 0;
+}
+.opponents {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.panel.right {
+  align-items: flex-end;
+  text-align: right;
+}
+.panel.cashed {
+  border-color: var(--volt-dim);
+  box-shadow: inset 0 0 24px rgba(0, 255, 133, 0.08);
+}
+.panel.bust {
+  border-color: var(--crash-dim);
+  box-shadow: inset 0 0 24px rgba(255, 59, 48, 0.08);
+}
+.who {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--muted-2);
+}
+.pname {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.psub {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.panel.cashed .psub {
+  color: var(--volt);
+}
+.panel.bust .psub {
+  color: var(--crash);
+}
+.score {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.score i {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  margin-left: 4px;
+}
+.roundline {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.panel.cashed .roundline {
+  color: var(--volt);
+}
+.panel.bust .roundline {
+  color: var(--crash);
+}
+
+/* ── Stage / ticker ────────────────────────────────── */
+.stage {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--bg-raise), #0c0c12);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+.curve {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ticker {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: clamp(56px, 18vw, 116px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.1s;
+}
+.ticker .x {
+  font-size: 0.42em;
+  margin-left: 0.06em;
+  vertical-align: 0.42em;
+  opacity: 0.7;
+}
+.ticker.idle {
+  color: var(--muted-2);
+}
+.ticker.live {
+  color: var(--volt);
+  text-shadow: 0 0 34px rgba(0, 255, 133, 0.55);
+}
+.ticker.crash {
+  color: var(--crash);
+  text-shadow: 0 0 38px rgba(255, 59, 48, 0.6);
+}
+.crashword {
+  position: absolute;
+  z-index: 2;
+  bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--crash);
+  animation: rise 0.3s ease-out;
+}
+.crashword.safe {
+  color: var(--volt);
+}
+
+.verdict {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  animation: rise 0.3s ease-out;
+}
+.verdict.win {
+  border-color: var(--volt-dim);
+}
+.verdict.loss {
+  border-color: var(--crash-dim);
+}
+.vmain {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+}
+.verdict.win .vmain {
+  color: var(--volt);
+}
+.verdict.loss .vmain {
+  color: var(--crash);
+}
+.vsub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.verdict.match {
+  padding: 14px 18px;
+}
+.vcol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.verdict.match .vmain {
+  font-size: 24px;
+}
+.vscore {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.vscore em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-2);
+  margin: 0 4px;
+}
+.verdict.win .vscore {
+  color: var(--volt);
+}
+.verdict.loss .vscore {
+  color: var(--crash);
+}
+
+/* ── Controls ──────────────────────────────────────── */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.primary {
+  width: 100%;
+  padding: 20px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: clamp(17px, 4.5vw, 21px);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.07s, filter 0.15s, background 0.15s;
+}
+.primary:active {
+  transform: translateY(2px) scale(0.99);
+}
+.primary.cash {
+  background: var(--volt);
+  color: #03130b;
+  box-shadow: 0 0 40px rgba(0, 255, 133, 0.35);
+  animation: pulse-volt 1.4s ease-out infinite;
+}
+.primary.cash.done {
+  background: var(--volt-dim);
+  color: #d8ffe9;
+  animation: none;
+  cursor: default;
+}
+.primary.rematch {
+  background: var(--crash);
+  color: #1a0503;
+  box-shadow: 0 0 40px rgba(255, 59, 48, 0.32);
+}
+.primary.enter {
+  background: var(--volt);
+  color: #03130b;
+}
+.primary.next {
+  background: var(--ink);
+  color: #03130b;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
+}
+.primary:hover {
+  filter: brightness(1.08);
+}
+.hint {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+}
+
+/* ── Gate debug panel ──────────────────────────────── */
+.gate {
+  position: fixed;
+  top: 64px;
+  right: 16px;
+  z-index: 60;
+  width: 290px;
+  background: rgba(10, 10, 15, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  backdrop-filter: blur(8px);
+}
+.gate-h {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--volt);
+  margin-bottom: 8px;
+}
+.gate-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.gate-row b {
+  font-family: var(--font-mono);
+  color: var(--ink);
+}
+.gate-row b.pass {
+  color: var(--volt);
+}
+.gate-row b.fail {
+  color: var(--crash);
+}
+.gate-note {
+  margin-top: 8px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted-2);
+}
