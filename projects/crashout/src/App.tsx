@@ -68,6 +68,7 @@ export default function App() {
   const heat = running ? (multiplier >= 10 ? 'hot' : multiplier >= 5 ? 'warm' : '') : '';
 
   const [showGate, setShowGate] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(ONBOARD_KEY));
 
   const closeHelp = () => {
@@ -119,20 +120,58 @@ export default function App() {
             <i className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
             {isBackendConnected ? 'LIVE' : 'LOCAL'}
           </span>
-          <button
-            className="ghosttoggle"
-            onClick={toggleMute}
-            title={muted ? 'Sound off — tap to unmute' : 'Sound on — tap to mute'}
-            aria-pressed={muted}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-          <button className="ghosttoggle" onClick={() => setShowHelp(true)} title="How to play">
-            ?
-          </button>
-          <button className="ghosttoggle" onClick={() => setShowGate((v) => !v)} title="Local gate instrument">
-            ∑
-          </button>
+          {/* Header controls collapse into one ⋯ sheet (mobile + desktop alike) —
+              keeps the bar to brand + 2 status chips + a single menu affordance. */}
+          <div className="hud-menu">
+            <button
+              className="ghosttoggle"
+              onClick={() => setShowMenu((v) => !v)}
+              title="Settings"
+              aria-haspopup="menu"
+              aria-expanded={showMenu}
+            >
+              ⋯
+            </button>
+            {showMenu && (
+              <>
+                <button
+                  className="sheet-backdrop"
+                  aria-label="Close menu"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="sheet" role="menu">
+                  <button className="sheet-row" onClick={toggleMute} role="menuitemcheckbox" aria-checked={!muted}>
+                    <span className="sheet-ico">{muted ? '🔇' : '🔊'}</span>
+                    Sound <b>{muted ? 'off' : 'on'}</b>
+                  </button>
+                  <button
+                    className="sheet-row"
+                    onClick={() => {
+                      setShowHelp(true);
+                      setShowMenu(false);
+                    }}
+                    role="menuitem"
+                  >
+                    <span className="sheet-ico">?</span>
+                    How to play
+                  </button>
+                  {import.meta.env.DEV && (
+                    <button
+                      className="sheet-row"
+                      onClick={() => {
+                        setShowGate((v) => !v);
+                        setShowMenu(false);
+                      }}
+                      role="menuitem"
+                    >
+                      <span className="sheet-ico">∑</span>
+                      Gate instrument
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -290,7 +329,7 @@ export default function App() {
         )}
       </footer>
 
-      {showGate && <GatePanel />}
+      {import.meta.env.DEV && showGate && <GatePanel />}
       {showHelp && <Onboarding onClose={closeHelp} />}
     </div>
   );

@@ -104,6 +104,69 @@
   border-color: var(--volt-dim);
 }
 
+/* ── Settings sheet (⋯) ────────────────────────────── */
+.hud-menu {
+  position: relative;
+}
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: transparent;
+  border: 0;
+  cursor: default;
+}
+.sheet {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 71;
+  min-width: 184px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line-bright, var(--line));
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  animation: sheet-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+.sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: left;
+  cursor: pointer;
+}
+.sheet-row b {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--volt);
+}
+.sheet-row:hover {
+  background: var(--surface-hi, rgba(255, 255, 255, 0.05));
+}
+.sheet-ico {
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+}
+
 /* ── Ladder rail (best-of-5) ───────────────────────── */
 .ladder {
   display: flex;
