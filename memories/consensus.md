@@ -2,13 +2,22 @@
 
 ## Last Updated
 
-2026-06-13 — Cycle 16: SHIPPED Milestone 1 #3 — GSAP ticker tick-pop, LIVE.
+2026-06-13 — Cycle 17: SHIPPED Milestone 1 #4/#5 — desktop layout split + glass Dynamic Island, LIVE.
 
 ## Current Phase
 
-Building (redesign execution underway — visual foundation + header IA + motion layer shipped)
+Building (redesign execution underway — visual foundation + header IA + motion + desktop layout shipped)
 
-## What We Did This Cycle (Cycle 16)
+## What We Did This Cycle (Cycle 17)
+
+- Executed the default Next Action: Milestone 1 #4/#5 desktop layout split + glass Dynamic Island. Pure layout/CSS + one chrome GSAP beat, zero game logic touched, zero legal risk.
+- Desktop (>=1024px) restructured from a stretched mobile column into a 2-zone grid: full-height glass **Dynamic Island** LEFT sidebar (best-of-5 ladder + live standing) + central arena (header strip · score panels · stage · verdict · CTA).
+- **Surgical, no DOM duplication**: wrapped ladder + matchinfo in `<aside className="rail">`. Mobile = `display: contents` (children flow as today, zero visual change). Desktop = `grid-template-areas` repositions the *same* DOM into the sidebar; rail gets glass material (blur(28px) saturate, layered shadows, radius 20px) per `docs/ui/cycle13-visual-system.md` §4. In-island the ladder stacks vertically (taller 8px pips) and standing anchors to the bottom.
+- New hook `src/hooks/useSidebarReveal.ts`: rail rows stagger in on mount via `gsap.matchMedia('(min-width:1024px) and (prefers-reduced-motion:no-preference)')`. No-op on mobile; reduced-motion users get it instantly. rAF curve loop untouched.
+- Build green (`pnpm test` + `pnpm build`, CSS 15.45kB/4.34kB gz), deployed → https://crashout-euq.pages.dev (deploy cd3b6c46). Commit ebec9f3.
+- **Deferred** (documented, not dropped): right scoreboard column (Phase 2 — needs real opponent data, ties to Open Q #3); idle-collapse-to-64px-pill island state (polish follow-up — adds idle-detection state, low value now).
+
+## What We Did Cycle 16
 
 - Executed the default Next Action: Milestone 1 #3 GSAP ticker tick-pop. Pure chrome motion, zero game logic touched, zero legal risk.
 - Installed GSAP 3.15.0 (pnpm). New hook `src/hooks/useTickPop.ts`: discrete scale-pop on the live multiplier ticker via `gsap.fromTo` on a wrapper transform — NEVER the rAF value (honors the "two drivers conflict" rule).
@@ -50,13 +59,16 @@ Building (redesign execution underway — visual foundation + header IA + motion
 
 ## Active Projects
 
-- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8), GSAP ticker tick-pop (#3). Remaining in Milestone 1: desktop layout split (#4/#5).
+- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8), GSAP ticker tick-pop (#3), desktop layout split + glass Dynamic Island (#4/#5). **Milestone 1 §7 list complete (#1–#8).** Remaining §7 items: #9 (crash shake + win celebration), #10 (heat ramp via GSAP color tween) — both polish.
 
 ## Next Action
 
-**Continue Milestone 1 "PROFESSIONAL" build** (priority order from `docs/ui/cycle13-visual-system.md` §7). Steps #1, #2, #3, #6, #7, #8 shipped. Next highest-value, still play-money-safe:
-1. **#4/#5 desktop layout split + glass "Dynamic Island"** — the larger refactor. Desktop currently = stretched mobile column; move to a 3-column grid with a glass Dynamic Island LEFT sidebar (per `docs/ui/cycle13-visual-system.md`). GSAP infra now in place for any chrome motion this needs. Use `gsap.matchMedia()` for responsive breakpoints + reduced-motion. Keep the rAF curve loop untouched.
-2. Optional smaller GSAP beats if desktop split is deferred: crash-thud shake, pip tick-forward, cash-out burst polish — all chrome-only.
+**Milestone 1 §7 core list (#1–#8) is DONE.** Remaining priority-ordered work from `docs/ui/cycle13-visual-system.md` §7, all play-money-safe, chrome-only:
+1. **#9 — crash-thud shake + win celebration via GSAP** (replaces CSS keyframes; adds particle burst on cash-out/match-win). Spec §5.3–5.5. Highest "feel" payoff remaining.
+2. **#10 — heat ramp via GSAP color tween** (smoother volt→gold→amber than the current CSS state-class transition). Spec §5.2.
+3. Polish follow-ups now unblocked by the desktop split: Dynamic Island idle-collapse-to-pill (spec §5.1), sidebar alert pulse on ghost cashout / lead flip (spec §5.6).
+
+After §7 polish, the redesign milestone is complete → next strategic gate is the **gambling-license escalation** (still the hard blocker on real-money crypto). If that stays unresolved, candidate next milestone = gamification systems (streaks/badges/leaderboards) which are play-money-safe and drive retention.
 
 Legal/crypto work stays PAUSED pending gambling-license escalation (still open).
 
