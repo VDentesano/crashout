@@ -62,6 +62,11 @@ export default function App() {
   const showCrashFx = (roundEnd || matchEnd) && lastBust && !matchWon;
   const crashed = (roundEnd || matchEnd) && lastBust;
 
+  // FX-2 — multiplier heat: the live ticker runs gold past 5x, amber past 10x,
+  // making greed visible at the focal point. Color is a state class (not a
+  // keyframe), so reduced-motion users keep the temperature.
+  const heat = running ? (multiplier >= 10 ? 'hot' : multiplier >= 5 ? 'warm' : '') : '';
+
   const [showGate, setShowGate] = useState(false);
   const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(ONBOARD_KEY));
 
@@ -137,9 +142,12 @@ export default function App() {
           {phase === 'idle' ? 'BEST OF 5' : `ROUND ${roundNo}/${ROUNDS_PER_MATCH}`}
         </span>
         <div className="pips">
-          {Array.from({ length: ROUNDS_PER_MATCH }, (_, i) => (
-            <span key={i} className={`pip ${pipState(i, rounds, running)}`} />
-          ))}
+          {Array.from({ length: ROUNDS_PER_MATCH }, (_, i) => {
+            // Key by state so a pip remounts when it resolves — that restart is
+            // what fires the T3 tick-forward animation on the landing.
+            const ps = pipState(i, rounds, running);
+            return <span key={`${i}-${ps}`} className={`pip ${ps}`} />;
+          })}
         </div>
         <div className="legend" aria-hidden>
           <span><i className="ldot win" />won</span>
@@ -166,7 +174,9 @@ export default function App() {
             <span className="left">highest score wins</span>
           </div>
         )}
-        <p className="rule">{scoringRule}</p>
+        {/* Reference material, not live state — show pre-match only (the standing
+            line carries the live read once a duel is underway). Always in the ? overlay. */}
+        {!inMatch && <p className="rule">{scoringRule}</p>}
       </div>
 
       <main className="arena">
@@ -208,7 +218,9 @@ export default function App() {
 
         <div className="stage">
           <CurveCanvas multiplier={multiplier} crashed={showCrashFx} />
-          <div className={`ticker ${showCrashFx ? 'crash' : running ? 'live' : 'idle'}`}>
+          {/* FX-1 — cash-out micro-burst: fires once the instant you lock in. */}
+          {running && playerCashedOut && <div className="cashburst" key={`cb-${state.nonce}`} />}
+          <div className={`ticker ${showCrashFx ? 'crash' : running ? 'live' : 'idle'} ${heat}`}>
             {multiplier.toFixed(2)}
             <span className="x">×</span>
           </div>
@@ -269,9 +281,13 @@ export default function App() {
               ? 'highest match score wins. a crash only zeroes that round.'
               : 'best-of-5 ladder · highest cumulative score takes the duel.'}
         </p>
-        <p className="cryptosoon">
-          Play money — <strong>on-chain crypto duels coming soon.</strong>
-        </p>
+        {/* Marketing line, not gameplay guidance — keep it off the live screen,
+            show on the idle/pre-match state only. */}
+        {!inMatch && (
+          <p className="cryptosoon">
+            Play money — <strong>on-chain crypto duels coming soon.</strong>
+          </p>
+        )}
       </footer>
 
       {showGate && <GatePanel />}

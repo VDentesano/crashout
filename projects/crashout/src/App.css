@@ -69,7 +69,7 @@
 }
 .chip code {
   font-family: var(--font-mono);
-  color: var(--muted-2);
+  color: var(--muted-rd);
   font-size: 10px;
 }
 .chip.warn {
@@ -114,7 +114,7 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.2em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
   white-space: nowrap;
 }
 .pips {
@@ -127,7 +127,16 @@
   height: 6px;
   border-radius: 999px;
   background: var(--line);
+  transform-origin: left center;
   transition: background 0.25s, box-shadow 0.25s;
+}
+/* T3 — a resolved pip ticks forward on landing (keyed remount in App.tsx
+   restarts it). Reduced-motion strips the keyframe → the flat background tween
+   above remains, which is already an acceptable fallback. */
+.pip.win,
+.pip.loss,
+.pip.draw {
+  animation: pip-tick 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .pip.win {
   background: var(--volt);
@@ -161,7 +170,7 @@
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .ldot {
   width: 6px;
@@ -201,7 +210,8 @@
   color: var(--volt);
 }
 .lead.ghost {
-  color: var(--crash);
+  /* Ghost leading is the opponent's identity, NOT danger — cyan, not crash-red. */
+  color: var(--ghost);
 }
 .gap {
   font-family: var(--font-mono);
@@ -214,18 +224,18 @@
   color: var(--volt);
 }
 .lead.ghost + .gap {
-  color: var(--crash);
+  color: var(--ghost);
 }
 .left {
   margin-left: auto;
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .rule {
   font-size: 11px;
   line-height: 1.4;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 
 /* ── Arena ─────────────────────────────────────────── */
@@ -271,10 +281,22 @@
 .panel.won .score {
   color: var(--volt);
 }
+/* ── Ghost identity (left panel is always the opponent) ──
+   The duel must read as YOU (volt) vs GHOST (cyan) BEFORE any state fires —
+   not two identical grey boxes. The idle framing only applies at rest, so a
+   ghost cash-out (.cashed) or bust (.bust) still overrides — bust semantics
+   win over identity, which is correct. */
+.panel.left .who {
+  color: var(--ghost);
+}
+.panel.left.idle {
+  border-color: var(--ghost-dim);
+  box-shadow: inset 0 0 24px rgba(50, 214, 255, 0.06);
+}
 .who {
   font-size: 10px;
   letter-spacing: 0.22em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .pname {
   font-size: 14px;
@@ -307,7 +329,7 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
   margin-left: 4px;
 }
 .roundline {
@@ -339,6 +361,24 @@
   width: 100%;
   height: 100%;
 }
+/* FX-1 — cash-out micro-burst ring, centred on the stage. opacity:0 base means
+   reduced-motion (which nukes the keyframe) shows nothing here — the held
+   fallback is the .panel.cashed colour state, so the reward is never lost. */
+.cashburst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: min(60%, 240px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 3px solid var(--volt);
+  box-shadow: 0 0 44px rgba(0, 255, 133, 0.5), inset 0 0 30px rgba(0, 255, 133, 0.3);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: cash-burst 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
 .ticker {
   position: relative;
   z-index: 2;
@@ -348,7 +388,9 @@
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  transition: color 0.1s;
+  /* Heat cross-fade: the climb warms volt→gold→amber as a color STATE, so
+     reduced-motion users still get the temperature (only the travel is lost). */
+  transition: color 0.22s ease, text-shadow 0.22s ease;
 }
 .ticker .x {
   font-size: 0.42em;
@@ -357,11 +399,20 @@
   opacity: 0.7;
 }
 .ticker.idle {
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .ticker.live {
   color: var(--volt);
   text-shadow: 0 0 34px rgba(0, 255, 133, 0.55);
+}
+/* FX-2 — multiplier heat. The longer you ride, the hotter the number runs. */
+.ticker.live.warm {
+  color: var(--heat);
+  text-shadow: 0 0 38px rgba(255, 210, 63, 0.55);
+}
+.ticker.live.hot {
+  color: var(--heat-amber);
+  text-shadow: 0 0 42px rgba(255, 176, 32, 0.6);
 }
 .ticker.crash {
   color: var(--crash);
@@ -435,7 +486,7 @@
   font-style: normal;
   font-size: 12px;
   font-weight: 600;
-  color: var(--muted-2);
+  color: var(--muted-rd);
   margin: 0 4px;
 }
 .verdict.win .vscore {
@@ -497,12 +548,12 @@
 .hint {
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .cryptosoon {
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .cryptosoon strong {
   color: var(--volt);
@@ -550,7 +601,7 @@
   margin-top: 8px;
   font-size: 10px;
   line-height: 1.5;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 
 /* ── Onboarding overlay ────────────────────────────── */
@@ -659,9 +710,20 @@
   text-align: center;
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: var(--muted-2);
+  color: var(--muted-rd);
 }
 .onboard-foot strong {
   color: var(--volt);
   font-weight: 600;
+}
+
+/* ── Mobile trims (norman 2A) ───────────────────────────
+   Reclaim vertical budget for .stage WITHOUT touching spacing tokens. The
+   won/lost/drawn legend is reference material already taught in onboarding and
+   carried by pip colour — redundant on every frame of a small screen. The
+   .rule and .cryptosoon lines are demoted in App.tsx (idle-only render). */
+@media (max-width: 560px) {
+  .legend {
+    display: none;
+  }
 }

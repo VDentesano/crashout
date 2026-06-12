@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "pnpm build && wrangler pages deploy dist --branch main"
+    "test": "node src/game/logic.test.ts && node src/audio/prefs.test.ts && node src/game/fairness.test.ts",
+    "deploy": "pnpm test && pnpm build && wrangler pages deploy dist --branch main"
   },
   "dependencies": {
     "react": "^19.2.6",
