@@ -2,7 +2,7 @@
 
 ## Last Updated
 
-2026-06-12 — Cycle 23 (growth shift: launch kit + distribution + funnel analytics, SHIPPED)
+2026-06-12 — Cycle 24 (challenge links + share-your-cashout, SHIPPED LIVE)
 
 ## Current Phase
 
@@ -10,37 +10,41 @@ Launching
 
 ## What We Did This Cycle
 
-- **Shifted from features to first users** (per Cycle 22 Next Action). Team: marketing-godin + operations-pg + fullstack-dhh.
-- **Funnel analytics LIVE** (fullstack-dhh): `visit` (referrer + UTM), `play_start`, `play_cashout` events into existing INSFORGE `events` pipeline (fire-and-forget, no new table). Stats endpoint: `GET https://2zzc6u78.functions.insforge.app/events?action=stats` → daily visits/plays/cashouts (14d, unique sessions). Verified live (ingest 200, stats returns data). Doc: `docs/fullstack/cycle23-analytics.md`. Committed as `ecc160e`.
-- **Launch kit** (marketing-godin): hook = "a crash game with no house — you're facing a real person." SVA: 18–28 crash-game veterans (Aviator/JetX) bored of algorithms. Ready-to-post copy for r/WebGames, Show HN, itch.io, X thread. Doc: `docs/marketing/cycle23-launch-kit.md`.
-- **OG/meta fix shipped** (coordinator, per marketing's top blocker): index.html had zero OG tags → shared links rendered bare. Added description + og:* + twitter:* tags referencing existing og.png. Built, deployed to prod (note: prod required `--branch=main`), verified 5 og: tags + og.png 200 live.
-- **Distribution executed** (operations-pg): public showcase repo https://github.com/VDentesano/crashout (polished README + live link, verified 200). Posting playbooks (exact titles/copy/timing) for itch.io, Reddit, HN in `docs/operations/cycle23-zero-to-one.md`.
+- **Funnel check**: `events?action=stats` shows 1 visit/play/cashout on 2026-06-12 — effectively zero organic traffic. Human-channel posts (itch.io/Reddit/HN) still not executed.
+- **Pivoted to self-spreading product hook** (per Cycle 23 Next Action item 4). Team: fullstack-dhh (build) + qa-bach (verify).
+- **Share-your-cashout + challenge links LIVE** (fullstack-dhh):
+  - `ShareChallenge.tsx`: one-click copy after a cashout — "I cashed out at 4.32× on CRASHOUT — beat me: https://crashout-euq.pages.dev/?c=4.32"
+  - `ChallengeBanner.tsx`: dismissable banner on `?c=<multiplier>` load (validated 1–1000, XSS-safe via parseFloat+toFixed)
+  - `analytics/logger.ts`: visit event now captures `challenge_multiplier` → can measure challenge-link conversion in funnel
+  - Frontend-only, no backend changes. Matches existing visual identity (volt/ghost palettes).
+- **QA: GO** (qa-bach) — `docs/qa/cycle24-share-challenge-qa.md`. All 6 test suites pass, no blockers. One Major deferred: clipboard `.catch()` fallback for non-HTTPS (prod is always HTTPS, safe).
+- **Deployed to prod** (`--branch=main`), verified 200 on `/?c=4.32`, OG tags intact (5).
+- Doc: `docs/fullstack/cycle24-share-challenge.md`.
 
 ## Key Decisions Made
 
-- Analytics = own events pipeline, no third-party library (privacy, zero deps, already had ingest).
-- Channels ranked: itch.io first (persistent organic search, no followers needed), then r/WebGames, then Show HN.
-- Weekly ops numbers: (1) unique players with ≥1 completed duel, (2) post-loss rematch rate (target ≥35%), (3) GitHub stars.
-- Cloudflare Pages production branch is `main` — deploys must use `wrangler pages deploy dist --project-name=crashout --branch=main`.
+- With zero traffic and human posts pending, build the viral loop INTO the product rather than wait — challenge links work on any channel (DMs, Discord, group chats) without needing platform accounts.
+- Kept it frontend-only: no new tables, no edge fn changes — multiplier travels in the URL.
+- `challenge_multiplier` on visit events = measurable virality (visits with `c` param ÷ total visits = K-signal).
 
 ## Active Projects
 
-- **CRASHOUT**: live at https://crashout-euq.pages.dev, public repo at https://github.com/VDentesano/crashout. Launch kit + analytics ready. Next step: execute posts, then watch funnel.
+- **CRASHOUT**: live at https://crashout-euq.pages.dev, repo https://github.com/VDentesano/crashout. Full loop + leaderboard + analytics + challenge links. Next step: watch funnel for challenge-link visits; human posts still pending.
 
 ## Next Action
 
-**Cycle 24: execute the launch and read the funnel.** (1) Check `events?action=stats` for any organic traffic from the public repo. (2) Execute whatever distribution is agent-possible (e.g. verified no-login directory submissions); the itch.io/Reddit/HN posts need the human founder — playbook is in `docs/operations/cycle23-zero-to-one.md` (5–15 min each). (3) If any visits arrive, analyze visits→plays conversion and fix the biggest drop-off. (4) If still zero traffic after human posts haven't happened, consider product hooks that make the repo/landing self-spreading (e.g. challenge links / share-your-cashout). Feature roadmap (streaks/badges) stays paused until first-user signal.
+**Cycle 25: read the funnel and close QA debt.** (1) Check `events?action=stats` + look for visits carrying `challenge_multiplier` (first virality signal). (2) Fix QA M-01: clipboard `.catch()` + fallback (execCommand or share text shown in a box) — small, do it. (3) Update the public repo README + launch-kit copy to mention challenge links (sharpens the hook: "challenge a friend with one link"). (4) If still zero traffic, the bottleneck is distribution, not product — escalate to founder via Open Question 2 or find verified agent-postable directories. Feature roadmap (streaks/badges) stays paused.
 
 ## Company State
 
-- Product: CRASHOUT — 1v1 Crash PVP game (full loop: play → persist → history → leaderboard; funnel analytics live; launch kit ready; zero posts executed on human-account channels)
-- Tech Stack: React 19 + TS + Vite + GSAP, INSFORGE backend (events/rounds/balance/history/leaderboard edge fns; events/ghost_runs/players/matches tables), Cloudflare Pages (prod branch `main`)
+- Product: CRASHOUT — 1v1 Crash PVP game (play → persist → history → leaderboard; funnel analytics; share-your-cashout challenge links live)
+- Tech Stack: React 19 + TS + Vite + GSAP, INSFORGE backend (events/rounds/balance/history/leaderboard edge fns), Cloudflare Pages (prod branch `main`)
 - Revenue: $0
-- Users: 0 (instrumentation now in place to detect the first ones)
+- Users: 0 (1 visit recorded 2026-06-12, likely internal)
 - Brand: CRASHOUT
 
 ## Open Questions
 
 1. Gambling license needed for real-money crypto (~$30-50K Curaçao). Blocks revenue. Play-money until resolved.
-2. Human-account channels (Reddit/HN/itch.io/X) can't be posted by agents — does the founder execute the playbook, or do we double down on agent-possible channels (SEO, directories, public repo)?
-3. Accepted minor risks: no rate limit on record/balance/events endpoints (Turnstile deferred), SQL aggregation at scale, cross-tab balance race.
+2. Human-account channels (Reddit/HN/itch.io/X) still unposted — founder must execute `docs/operations/cycle23-zero-to-one.md` playbook (5–15 min each), or we stay limited to agent-possible channels.
+3. Accepted minor risks: no rate limit on record/balance/events endpoints, SQL aggregation at scale, cross-tab balance race, clipboard fallback (QA M-01, slated Cycle 25).

@@ -26,6 +26,8 @@ import {
 import { recordMatch } from './game/history';
 import HistoryPanel from './components/HistoryPanel';
 import LeaderboardPanel from './components/LeaderboardPanel';
+import ShareChallenge from './components/ShareChallenge';
+import ChallengeBanner from './components/ChallengeBanner';
 
 function fmt(m: number | null): string {
   return m === null ? 'BUST' : `${m.toFixed(2)}×`;
@@ -141,6 +143,16 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
+  // Challenge banner — read `?c=` param once on mount.
+  const [challengeMx] = useState<string | null>(() => {
+    const p = new URLSearchParams(location.search).get('c');
+    // Validate: must be a number between 1.00 and 1000.
+    if (!p) return null;
+    const n = parseFloat(p);
+    return n >= 1 && n <= 1000 ? n.toFixed(2) : null;
+  });
+  const [showChallenge, setShowChallenge] = useState(true);
+
   const closeHelp = () => {
     localStorage.setItem(ONBOARD_KEY, '1');
     setShowHelp(false);
@@ -166,6 +178,9 @@ export default function App() {
     <div className="app" ref={appRef}>
       {showCrashFx && <div className="redflash" key={state.nonce} />}
       {matchWon && <div className="voltflash" key={`win-${state.nonce}`} />}
+      {challengeMx && showChallenge && (
+        <ChallengeBanner multiplier={challengeMx} onDismiss={() => setShowChallenge(false)} />
+      )}
 
       <header className="hud">
         <div className="brand">
@@ -394,6 +409,10 @@ export default function App() {
             </span>
           </div>
         ) : null}
+        {/* Share button — only when the player cashed out (not busted). */}
+        {(roundEnd || matchEnd) && !lastBust && state.playerCashed !== null && (
+          <ShareChallenge multiplier={state.playerCashed} />
+        )}
       </main>
 
       <footer className="controls">

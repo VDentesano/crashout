@@ -197,6 +197,7 @@ export function trackVisit(): void {
     utm_source: params.get('utm_source') || null,
     utm_medium: params.get('utm_medium') || null,
     utm_campaign: params.get('utm_campaign') || null,
+    challenge_multiplier: params.get('c') || null,
   });
 }
 
