@@ -12,16 +12,39 @@ interface Props {
 
 export default function ShareChallenge({ multiplier }: Props) {
   const [copied, setCopied] = useState(false);
+  const [fallback, setFallback] = useState(false);
 
   const mx = multiplier.toFixed(2);
   const url = `${BASE_URL}/?c=${mx}`;
   const text = `I cashed out at ${mx}× on CRASHOUT — beat me: ${url}`;
 
   function handleCopy() {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    if (!navigator.clipboard?.writeText) {
+      setFallback(true);
+      return;
+    }
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => setFallback(true));
+  }
+
+  if (fallback) {
+    return (
+      <div className="share-challenge-fallback">
+        <span className="share-challenge-fallback-label">COPY MANUALLY</span>
+        <input
+          className="share-challenge-fallback-text"
+          type="text"
+          readOnly
+          value={text}
+          onFocus={(e) => e.target.select()}
+        />
+      </div>
+    );
   }
 
   return (

@@ -1200,6 +1200,35 @@
   background: rgba(0, 255, 133, 0.14);
 }
 
+/* Clipboard-unavailable fallback: show the share text for manual copy */
+.share-challenge-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--volt-dim);
+  background: rgba(0, 255, 133, 0.06);
+  animation: rise 0.3s ease-out;
+}
+.share-challenge-fallback-label {
+  color: var(--ghost);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.share-challenge-fallback-text {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--volt-dim);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--volt);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 /* ── Challenge banner ──────────────────────────────── */
 .challenge-banner {
   display: flex;
