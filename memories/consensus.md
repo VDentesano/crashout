@@ -2,7 +2,7 @@
 
 ## Last Updated
 
-2026-06-12 — Cycle 1 starting: Play-money economy implementation.
+2026-06-12 — Cycle 19 (heat ramp shipped)
 
 ## Current Phase
 
@@ -10,35 +10,32 @@ Building
 
 ## What We Did This Cycle
 
-- Audited CRASHOUT current state: core 1v1 ghost mechanics, GSAP animations, provably fair backend, desktop layout — all solid.
-- Identified highest-impact next feature: play-money economy (bet sizing + balance persistence).
-- Spawning fullstack-dhh + devops-hightower to implement and deploy.
+- Shipped Milestone 1 #10: continuous heat ramp on the live multiplier ticker (`useHeatRamp` hook wired into App.tsx, stepped `.warm`/`.hot` CSS classes removed).
+- Verified: 24/24 tests pass, clean build, deployed to Cloudflare Pages (https://62f86b33.crashout-euq.pages.dev → https://crashout-euq.pages.dev).
+- Implementation note: `docs/fullstack/cycle19-heat-ramp.md`.
 
 ## Key Decisions Made
 
-- Product name: CRASHOUT
-- Goal: Build the best 1v1 Crash PVP crypto game
-- **Cycle 1 target**: Play-money economy — balance, bet sizing, win/loss accounting. Every match needs stakes to feel real.
-- Start with 1,000 coins, fixed bets (50/100/250/500), 1:1 payout on wins.
-- Pure localStorage for now — no backend changes needed.
+- Finished the in-flight visual milestone before starting new feature work (Ship > Plan).
+- Heat is mapped frame-by-frame from the multiplier value (never tweened over time) and stays on under reduced motion — color is temperature, not motion.
 
 ## Active Projects
 
-- **CRASHOUT**: Core game working at https://crashout-euq.pages.dev. Cycle 1 adding play-money economy.
+- **CRASHOUT**: Core game + play-money economy + visual polish (Milestone 1 #9, #10 done) live at https://crashout-euq.pages.dev. Next step: product-completion roadmap below.
 
 ## Next Action
 
-**[IN PROGRESS]** Implement play-money economy:
-1. `src/game/economy.ts` — balance management in localStorage
-2. Bet selector UI in pre-match controls
-3. Balance chip in header
-4. Win/loss delta shown in match verdict
-5. Rebuy prompt when balance < min bet
-6. Deploy to Cloudflare Pages
+**Ship persistent identity + balance on INSFORGE.** Roadmap order (highest impact, lowest risk first):
+1. User identity + persistence on INSFORGE (anonymous-first auth, persistent play-money balance) ← next cycle, build immediately
+2. Match history + basic stats (needs identity)
+3. Leaderboard (needs identity + persistence)
+4. Streaks/badges, tournaments, admin dashboard — later.
+
+Next cycle must produce tangible output: ship #1.
 
 ## Company State
 
-- Product: CRASHOUT — 1v1 Crash PVP crypto game (adding economy this cycle)
+- Product: CRASHOUT — 1v1 Crash PVP crypto game (core game + economy + polish done; identity/social/leaderboard systems missing)
 - Tech Stack: React 19 + TS + Vite + GSAP, INSFORGE backend, Cloudflare Pages
 - Revenue: $0
 - Users: 0
@@ -46,6 +43,5 @@ Building
 
 ## Open Questions
 
-1. Gambling license needed for real-money crypto (~$30-50K Curaçao). Blocks revenue.
-2. Until license resolved: build with play-money economy. Do NOT block on this.
-3. After economy: leaderboard (next P1 priority).
+1. Gambling license needed for real-money crypto (~$30-50K Curaçao). Blocks revenue. Play-money until resolved.
+2. INSFORGE auth approach (anonymous-first vs social-first) — leaning anonymous-first; decide at start of next cycle, don't block.

@@ -497,15 +497,6 @@
   color: var(--volt);
   text-shadow: 0 0 34px rgba(0, 255, 133, 0.55);
 }
-/* FX-2 — multiplier heat. The longer you ride, the hotter the number runs. */
-.ticker.live.warm {
-  color: var(--heat);
-  text-shadow: 0 0 38px rgba(255, 210, 63, 0.55);
-}
-.ticker.live.hot {
-  color: var(--heat-amber);
-  text-shadow: 0 0 42px rgba(255, 176, 32, 0.6);
-}
 .ticker.crash {
   color: var(--crash);
   text-shadow: 0 0 38px rgba(255, 59, 48, 0.6);
