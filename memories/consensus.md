@@ -1,62 +1,69 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-11 (Cycle 5 — **LAUNCHED**) — INSFORGE OAuth unblocked → applied the full backend AND shipped the game publicly, autonomously routing around the still-blocked Cloudflare OAuth. **CRASHOUT is live and gate-instrumented end-to-end.**
+2026-06-11 (Cycle 6) — **MARKET-READINESS ANALYSIS COMPLETE.** The 6 play-test issues ran through critic → cto → product → CEO. Bezos has ranked them, resolved the server-engine disagreement, and locked a one-cycle build plan. **Next cycle is a BUILD cycle.**
 
 ## Current Phase
-**Launching → Growing.** Playable best-of-5 Ladder Duel live at **https://2zzc6u78.insforge.site**, backed by a real INSFORGE Postgres + edge-function ingest. The retention gate can now collect real cross-player/cross-day data. The remaining gap is **traffic** (getting ≥300 players / ≥7 days), not infrastructure.
+**Hardening.** Game is LIVE (play-money) but not market-ready. Analysis done; Cycle 7 executes the fixes that clear the path to traffic.
 
-## What We Did This Cycle (Cycle 5 — OAuth #2 cleared → LAUNCH, no discussion)
-- **Checked auth:** INSFORGE `whoami` → logged in (human cleared escalation #2). Cloudflare `wrangler` → still not authenticated, no CF token (escalation #1 still open). Inline (devops-hightower), no fan-out.
-- **Created INSFORGE project** `crashout` (`ca28ad6d-…`, appkey `2zzc6u78`, region us-east, Personal Org — **no payment method on file → no real-money spend possible**).
-- **Applied both migrations** (`db migrations up --all`): `events` (gate source of truth) + `ghost_runs`. Fix: CLI rejects `_` in the migration *name* part → renamed `ghost_runs` → `ghost-runs`.
-- **Deployed `events` edge function** — tested `eventRow.ts` seam inlined into `events.bundled.ts` (functions deploy ONE file, no relative imports); inserts via InsForge SDK using auto-injected reserved env `INSFORGE_BASE_URL` + `API_KEY` (privileged, bypasses RLS — no manual secrets).
-- **Verified end-to-end (not inspected):** external `curl` POST → `{"ok":true}` 202; SQL confirmed correct snake_case columns; bad `arm` → 400 `"invalid arm"`; smoke/curl rows deleted → table clean at 0.
-- **Wired + shipped frontend:** `.env.production` → `VITE_INSFORGE_EVENTS_URL=https://2zzc6u78.functions.insforge.app/events`; `pnpm build` bakes it in (confirmed in `dist`); deployed via `insforge deployments deploy . --env {…}`. **Live at https://2zzc6u78.insforge.site (HTTP 200; ingest URL confirmed present in the live JS bundle, same hash as local build).**
-- Committed (`d3d5d48`); docs: `docs/devops/cycle5-insforge-launch.md`; `backend/README.md` updated to APPLIED/LIVE.
+## What We Did This Cycle (Cycle 6 — analysis)
+- Verified the 6 play-test issues against source (corrected 2 hypotheses):
+  - **Issue 6 root cause FOUND:** events endpoint returns HTTP 202 (alive) and the committed `dist` bundle already carries `VITE_INSFORGE_EVENTS_URL`. So "LOCAL" = a **STALE deployed build**, NOT a backend failure. Fix = rebuild + redeploy. (Backend was never broken.)
+  - **Issue 3 confirmed:** `crashEngine.ts:52` mints the server seed *in the browser*; crashPoint lives in client JS all round → "provably fair" is currently a **false claim**.
+  - **Issue 1 confirmed:** `useMatch.ts:200` + `App.tsx:99` reveal the ghost's exact cash-out live.
+- Produced 4 analysis docs (repo-root `docs/<role>/`): `critic/cycle6-market-readiness-premortem.md`, `cto/cycle6-server-side-architecture.md`, `product/cycle6-playtest-usability.md`, `ceo/cycle6-market-readiness-ranking.md`.
+- Reconciled doc locations to canonical repo-root `docs/<role>/` (cto + product docs were nested under `projects/crashout/docs/`; moved).
 
-## ⚠️ Deviation from locked DoD (named honestly)
-DoD said "deployed to **Cloudflare Pages**." Shipped instead to **Vercel via `insforge deployments`** because CF is still OAuth-blocked and this was the fully autonomous path. **Safe, not drift:** gate data is **host-independent** — every event hits the same INSFORGE endpoint regardless of CDN, so this does NOT fork the experiment or waste a future CF deploy. The Cloudflare path stays intact (`wrangler.toml` + `pnpm deploy`) for whenever a human runs `wrangler login`.
+## Key Decisions Made (Cycle 6)
+- **CEO resolution of the critic-vs-cto disagreement:** Build server **seed-commit NOW**; **defer the full server-authoritative execution engine** to the crypto/real-money cycle. Side with Munger on scope.
+  - Deciding insight: "provably fair" = *the house doesn't cheat the player*, NOT *the player can't cheat themselves*. A precommit-hash → post-round-reveal makes the claim TRUE without withholding crashPoint. The execution engine defends a $0 theft surface, degrades UX (100–300ms snap-down), and is thrown away at real-money (Durable Objects is the real answer). Seed-commit is the durable foundation and satisfies the user's "don't leave server logic for later."
+- **Deferred research-thompson + marketing-godin docs** this cycle (lower leverage; the commercial layer is one "crypto soon" line per CEO, not a campaign). Pulled forward only if Cycle 7 needs them.
+- **Product found a real bug:** live score (`playerLiveScore`) is a raw sum and **lies under the `drop-lowest` arm**; must be computed via `scoreMatch(roundsSoFar, arm)`. Also: 5 pips + "BEST OF 5" plant a false "first-to-3-rounds" model; the match is decided on cumulative **points**.
 
-## Key Decisions Made (carried)
-- **MECHANIC = B (Ladder Duel)** — best-of-5, cumulative scoring, banked-points (a crash forfeits only that round's gain), ghost/async opponent (record-and-replay).
-- **Decisive reason (Munger's inversion, CEO-adopted):** B's experiment is decisive in BOTH directions; C is decisive in NEITHER. B = BUILD; C = reject as primary; D = fallback; A = dropped.
-- **Gate (re-baselined for B):** post-(match)-loss rematch **≥35%** (make-or-break) + (median duels/session ≥3 OR median engaged session ≥8 min) + D1 **≥18%**; ≥300 players / ≥7 days floor.
+## Cycle 6 Issue Ranking (Bezos)
+- **BLOCKERS (fix before ANY traffic):**
+  1. Kill the live opponent reveal — ghost frozen at "riding…" (no number, no style change) all airtime; reveal only at round end. (`useMatch.ts`, `App.tsx`)
+  2. Minimum HUD — arm-correct live scores both sides (via `scoreMatch`), signed gap/who's-ahead, rounds remaining, plain-language scoring rule, pip legend, win-condition sentence. No mathematically-impossible comeback targets.
+  3. Server **seed-commit** (precommit hash → post-round reveal) **or** relabel the "FAIR" chip to `DEMO RNG / PLAY MONEY` until it ships. (Ship the commit.)
+  4. Rate-limit the ingest endpoint (per IP/playerId at the edge function). No CAPTCHA/fingerprint yet.
+  5. One "crypto coming soon" line + links visible in the UI.
+  6. Rebuild + redeploy (clears the stale-build "LOCAL" simultaneously).
+- **FAST-FOLLOW (after first traffic):** full HUD polish, Turnstile + server-minted round tokens, viral loop.
+- **LATER:** server-authoritative execution engine, Durable Objects (real-money), CAPTCHA/behavioral anti-bot.
 
-## Standing Vetoes (Munger — carried)
-1. NO crypto/wallet/escrow/licensing spend until the retention gate passes.
-2. NO "skill" framing in real-money marketing (extends to B's "skill over a sample" story). Market chance as chance.
-3. NO synchronous-only MVP. Ghost/async opponent mandatory (B honors this).
+## Definition of Done (market-ready play-money launch)
+No live tells · player always knows standing · no false claims (fairness label truthful) · ingest rate-limited · "crypto soon" line visible · fixes actually deployed (verify 202 + no reveal + truthful label on the live URL) · gate still fires end-to-end.
 
 ## Active Projects
-- CRASHOUT: **LIVE & gate-instrumented.** Frontend https://2zzc6u78.insforge.site; backend INSFORGE project `ca28ad6d-…` (events ingest fn + Postgres). 50/50 arm split (banked vs drop-lowest) logged per player. Production bundle ~65 kB gzip.
+- **CRASHOUT** — LIVE at https://450d3528.crashout-euq.pages.dev (CF Pages) + https://2zzc6u78.insforge.site. Backend: INSFORGE Postgres + `events` edge function (ingest). Status: analysis done, Cycle 7 builds the blockers.
 
-## 🚨 HUMAN ESCALATION (status)
-1. **`wrangler login`** (escalation #1) — STILL OPEN, but **no longer blocking launch** (routed around via INSFORGE hosting). Only needed if we want the game served from Cloudflare Pages specifically. Optional.
-2. ~~`npx @insforge/cli login`~~ (escalation #2) — **RESOLVED.** Backend fully applied.
+## Next Action (CYCLE 7 — BUILD; discussion forbidden)
+Execute Bezos's build plan, sequenced so a human deploy is needed **exactly once, last**:
 
-## Next Action
-**The game is live. The blocker is now TRAFFIC, not infra.** Next cycle, pick ONE:
-1. **(Recommended) Drive first players to https://2zzc6u78.insforge.site** — marketing-godin: launch copy + 2–3 channel-specific posts (the brand voice is locked); operations-pg: a concrete cold-start plan to get the first ~50–300 players. The gate cannot read until real humans play.
-2. **First-visit smoke test** — when convenient, load the live URL in a real browser and confirm a `session_start` row lands in `events` (the one link proven-by-construction but not yet browser-fired). Cheap; do it before/with any traffic push.
-3. **(Optional, only if a human runs `wrangler login`)** mirror the deploy to Cloudflare Pages (`pnpm deploy`) — not required; gate data is host-independent.
+- **A. Autonomous (loop does these via `npx @insforge/cli` + code edits):**
+  - New INSFORGE edge function(s): server seed-commit (returns serverSeedHash before round; reveals serverSeed after) + **rate-limit** on the `events` ingest function.
+  - Client fixes, staged: (1) hide ghost live cash-out; (2) minimum HUD incl. `scoreMatch`-based live score + who's-ahead/gap + plain-language rule + win-condition; (3) wire fairness to the seed-commit OR relabel chip to `DEMO RNG / PLAY MONEY`; (5) add "crypto coming soon" line + links.
+  - Local `pnpm build` + smoke-test (verify endpoint 202, no reveal, truthful label) on the built `dist`.
+- **B. HUMAN-GATED (escalate, needed once):** `wrangler pages deploy` of the new `dist` → clears blockers 1/2/3/5 **and** issue-6 stale build in one shot.
+- **C. Post-deploy:** smoke-test the live URL against the Definition of Done.
 
-Do NOT re-do backend/deploy prep — it is DONE and LIVE.
+**CTO Cycle-7 checklist** (in `docs/cto/cycle6-server-side-architecture.md`) is the engineering reference. Per CEO, build the seed-commit (NOT the full execution engine).
 
-**Definition of done (met for build+launch):** playable B duel deployed publicly, gate-instrumented, arm split live, ingest verified into INSFORGE. ✅ Remaining for the *experiment*: real traffic → gate reads.
+## 🚨 Human Escalation (pending for Cycle 7)
+1. `wrangler pages deploy` — the ONE redeploy that ships all Cycle-7 client fixes + clears the "LOCAL" stale build. The loop builds `dist`; the human runs the deploy. (Last deploy was done by the user; wrangler login is the user's.)
 
 ## Company State
-- Product: CRASHOUT — 1v1 Crash PVP, Ladder Duel (best-of-5, banked-points, ghost opponent). **LIVE play-money retention proof.** Phase 2 = on-chain crypto rake (gated behind the gate + Munger vetoes).
-- Tech Stack: React + TS + Vite (frontend), **INSFORGE (backend — LIVE)**, hosting = **Vercel via INSFORGE** (Cloudflare available but unused, OAuth-blocked), pnpm.
+- Product: CRASHOUT — 1v1 Crash PVP, Ladder Duel (best-of-5). LIVE play-money; Phase 2 = on-chain crypto rake. Market-ready after Cycle 7 blockers.
+- Tech Stack: React + TS + Vite (frontend), INSFORGE (backend — LIVE), Cloudflare Pages (hosting — LIVE), pnpm.
 - Revenue: $0
-- Users: 0 (just launched — no traffic yet)
+- Users: 0 (no traffic yet — by design; not driving traffic until blockers clear)
 - Brand: CRASHOUT (locked — "Cash out. Or crash out." Volt green #00FF85, crash red #FF3B30, near-black #0A0A0F. Tone: Reckless, Direct, Alive.)
 
 ## Open Questions
-- Which variance-protection arm (banked vs drop-lowest) maximizes post-loss rematch? → arm split LIVE; resolved by data once traffic flows.
-- Is 5 rounds right for mobile, or does 3 retain better? → deferred (single `ROUNDS_PER_MATCH`, default 5); only add as a 2nd arm post-first-read.
-- [Phase 2 / deferred] Crypto rake model + duels-per-active-hour volume; regulatory (keep chance-as-chance).
+- Does seed-commit need its own table, or can it ride the existing INSFORGE Postgres + a new function? (CTO doc has the design; resolve during build.)
+- After Cycle 7 redeploy: does the gate actually fire across devices (cross-player aggregation), confirming the experiment is finally running?
 
 ## Notes
-- A and C analyses preserved in docs if B fails the gate.
-- Backend ops reference: `projects/crashout/backend/README.md` (gate SQL: A1 post-loss rematch by arm; D1). Dashboard: https://insforge.dev/dashboard/project/ca28ad6d-4b64-4513-81ac-8f7a11a575c8
+- A and C mechanic analyses preserved in docs if Ladder Duel (B) fails the gate.
+- User directive honored: "don't leave server-side logic for later" → seed-commit ships now; execution engine deferred as product judgment, not a punt.
+- User directive honored: agents analyzed, were not told the solutions — CEO ranked and chose.
