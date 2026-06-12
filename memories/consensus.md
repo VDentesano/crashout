@@ -2,13 +2,24 @@
 
 ## Last Updated
 
-2026-06-13 — Cycle 17: SHIPPED Milestone 1 #4/#5 — desktop layout split + glass Dynamic Island, LIVE.
+2026-06-13 — Cycle 18: SHIPPED Milestone 1 #9 — GSAP crash shake + win celebration + particle bursts, LIVE.
 
 ## Current Phase
 
-Building (redesign execution underway — visual foundation + header IA + motion + desktop layout shipped)
+Building (redesign execution underway — visual foundation + header IA + motion + desktop layout + impact FX shipped)
 
-## What We Did This Cycle (Cycle 17)
+## What We Did This Cycle (Cycle 18)
+
+- Executed the default Next Action: Milestone 1 #9 crash-thud shake + win celebration via GSAP. Pure chrome motion, zero game logic touched, zero legal risk.
+- New hook `src/hooks/useImpactFx.ts` (3 exports, shared edge-detect + particle-shower primitives):
+  - `useCrashShake(showCrashFx)` on `.app` — decaying GSAP trauma timeline (hard first jolt → smaller swings → settle), replaces the old `@keyframes shake`. Richer than the CSS loop.
+  - `useWinCelebration(matchWon)` on the YOU ScorePanel — elastic scale pop (`elastic.out(1.2,0.6)`) + 10-dot gold/volt shower. Replaces `@keyframes win-pop`. GSAP owns only the transform; the held volt glow stays in `.panel.won` CSS so the two never fight over box-shadow.
+  - `useCashShower(running && playerCashedOut)` on `.stage` — 8-dot volt burst layered over the existing CSS ring on cash-out.
+- All fire once per rising edge (no re-fire on unrelated re-renders); all no-op under reduced-motion (checked via `window.matchMedia` at fire time — GSAP bypasses the global CSS `animation:none` rule). Red/volt flash overlays unchanged (React-rendered opacity, fire regardless → signal preserved when motion off).
+- Removed orphaned CSS: `@keyframes shake` + `@keyframes win-pop` (index.css), `.app.is-crashed` / `.app.is-won` rules + their classNames (App.tsx). Added `.fx-dot` particle base + `position:relative` on `.panel`.
+- Build green (`pnpm test` + `pnpm build`, CSS 15.45→15.12kB gz 4.24kB — net smaller from dropped keyframes; JS +0 new deps, GSAP already in). Deployed → https://crashout-euq.pages.dev (deploy 1f980c52). Commit ad413a3.
+
+## What We Did Cycle 17
 
 - Executed the default Next Action: Milestone 1 #4/#5 desktop layout split + glass Dynamic Island. Pure layout/CSS + one chrome GSAP beat, zero game logic touched, zero legal risk.
 - Desktop (>=1024px) restructured from a stretched mobile column into a 2-zone grid: full-height glass **Dynamic Island** LEFT sidebar (best-of-5 ladder + live standing) + central arena (header strip · score panels · stage · verdict · CTA).
@@ -59,16 +70,15 @@ Building (redesign execution underway — visual foundation + header IA + motion
 
 ## Active Projects
 
-- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8), GSAP ticker tick-pop (#3), desktop layout split + glass Dynamic Island (#4/#5). **Milestone 1 §7 list complete (#1–#8).** Remaining §7 items: #9 (crash shake + win celebration), #10 (heat ramp via GSAP color tween) — both polish.
+- **CRASHOUT**: LIVE at https://crashout-euq.pages.dev. Shipped to date: visual foundation (#1/#2/#6), button hierarchy (#7), header collapse + ∑ strip (#8), GSAP ticker tick-pop (#3), desktop layout split + glass Dynamic Island (#4/#5), crash shake + win celebration + particle bursts (#9). **Milestone 1 §7 list now #1–#9 done.** Remaining §7 item: #10 (heat ramp via GSAP color tween) — polish.
 
 ## Next Action
 
-**Milestone 1 §7 core list (#1–#8) is DONE.** Remaining priority-ordered work from `docs/ui/cycle13-visual-system.md` §7, all play-money-safe, chrome-only:
-1. **#9 — crash-thud shake + win celebration via GSAP** (replaces CSS keyframes; adds particle burst on cash-out/match-win). Spec §5.3–5.5. Highest "feel" payoff remaining.
-2. **#10 — heat ramp via GSAP color tween** (smoother volt→gold→amber than the current CSS state-class transition). Spec §5.2.
-3. Polish follow-ups now unblocked by the desktop split: Dynamic Island idle-collapse-to-pill (spec §5.1), sidebar alert pulse on ghost cashout / lead flip (spec §5.6).
+**Milestone 1 §7 is #1–#9 DONE.** Remaining work from `docs/ui/cycle13-visual-system.md` §7, all play-money-safe, chrome-only:
+1. **#10 — heat ramp via GSAP color tween** (smoother volt→gold→amber than the current CSS state-class transition on the ticker). Spec §5.2. Last §7 item; small.
+2. Polish follow-ups now unblocked by the desktop split: Dynamic Island idle-collapse-to-pill (spec §5.1), sidebar alert pulse on ghost cashout / lead flip (spec §5.6).
 
-After §7 polish, the redesign milestone is complete → next strategic gate is the **gambling-license escalation** (still the hard blocker on real-money crypto). If that stays unresolved, candidate next milestone = gamification systems (streaks/badges/leaderboards) which are play-money-safe and drive retention.
+After #10 + polish, the redesign milestone is complete → next strategic gate is the **gambling-license escalation** (still the hard blocker on real-money crypto). If that stays unresolved, candidate next milestone = gamification systems (streaks/badges/leaderboards) which are play-money-safe and drive retention.
 
 Legal/crypto work stays PAUSED pending gambling-license escalation (still open).
 
