@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import type { Ref } from 'react';
 import './App.css';
 import CurveCanvas from './components/CurveCanvas';
 import Onboarding, { ONBOARD_KEY } from './components/Onboarding';
 import { useCountUp } from './hooks/useCountUp';
 import { useTickPop } from './hooks/useTickPop';
 import { useSidebarReveal } from './hooks/useSidebarReveal';
+import { useCrashShake, useCashShower, useWinCelebration } from './hooks/useImpactFx';
 import { useGameAudio } from './audio/useGameAudio';
 import { useMatch } from './game/useMatch';
 import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
@@ -77,6 +79,14 @@ export default function App() {
   // no-reduced-motion). No-op on mobile where the rail is display:contents.
   const railRef = useSidebarReveal();
 
+  // Impact FX — GSAP "feel" beats at the two emotional peaks: crash trauma (frame
+  // shake) and match win (panel pop + particle shower), plus a cash-out burst.
+  // Each fires once on its rising edge; all no-op under reduced-motion. See
+  // useImpactFx for the chrome-only / reduced-motion contract.
+  const appRef = useCrashShake(showCrashFx);
+  const stageRef = useCashShower(running && playerCashedOut);
+  const wonPanelRef = useWinCelebration(matchWon);
+
   const [showGate, setShowGate] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(ONBOARD_KEY));
@@ -103,7 +113,7 @@ export default function App() {
   }, [showHelp, running, playerCashedOut, advance, cashOut]);
 
   return (
-    <div className={`app ${showCrashFx ? 'is-crashed' : ''} ${matchWon ? 'is-won' : ''}`}>
+    <div className="app" ref={appRef}>
       {showCrashFx && <div className="redflash" key={state.nonce} />}
       {matchWon && <div className="voltflash" key={`win-${state.nonce}`} />}
 
@@ -267,10 +277,11 @@ export default function App() {
             kind={state.playerCashed !== null ? 'cashed' : crashed ? 'bust' : 'idle'}
             align="right"
             won={matchWon}
+            panelRef={wonPanelRef}
           />
         </div>
 
-        <div className="stage">
+        <div className="stage" ref={stageRef}>
           <CurveCanvas multiplier={multiplier} crashed={showCrashFx} />
           {/* FX-1 — cash-out micro-burst: fires once the instant you lock in. */}
           {running && playerCashedOut && <div className="cashburst" key={`cb-${state.nonce}`} />}
@@ -361,6 +372,7 @@ function ScorePanel({
   kind,
   align,
   won = false,
+  panelRef,
 }: {
   who: string;
   name: string;
@@ -369,10 +381,11 @@ function ScorePanel({
   kind: 'idle' | 'cashed' | 'bust';
   align: 'left' | 'right';
   won?: boolean;
+  panelRef?: Ref<HTMLDivElement>;
 }) {
   const shown = useCountUp(score);
   return (
-    <div className={`panel ${align} ${kind} ${won ? 'won' : ''}`}>
+    <div className={`panel ${align} ${kind} ${won ? 'won' : ''}`} ref={panelRef}>
       <span className="who">{who}</span>
       <span className="pname">{name}</span>
       <span className="score">

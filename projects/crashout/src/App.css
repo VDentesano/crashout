@@ -8,9 +8,8 @@
   gap: 12px;
   position: relative;
 }
-.app.is-crashed {
-  animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-}
+/* Crash trauma + match-win celebration are GSAP-driven (useImpactFx) — richer
+   decay/elastic than a CSS loop, and they no-op cleanly under reduced-motion. */
 
 /* Rail wrapper — invisible on mobile (its children, ladder + matchinfo, flow as
    normal grid rows of .app). Becomes the glass Dynamic Island on desktop. */
@@ -35,10 +34,6 @@
   background: radial-gradient(120% 90% at 50% 45%, rgba(0, 255, 133, 0.85), transparent 62%);
   animation: flash-volt 0.7s ease-out forwards;
 }
-.app.is-won {
-  animation: win-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 /* ── HUD ───────────────────────────────────────────── */
 .hud {
   display: flex;
@@ -321,6 +316,7 @@
 }
 .panel {
   flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -351,7 +347,8 @@
 .panel.won {
   border-color: var(--volt);
   box-shadow: inset 0 0 28px rgba(0, 255, 133, 0.14), 0 0 30px rgba(0, 255, 133, 0.22);
-  animation: win-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+  /* Held reward glow only — the one-shot pop is GSAP (useWinCelebration), kept off
+     CSS so the two never fight over the panel transform. */
 }
 .panel.won .score {
   color: var(--volt);
@@ -460,6 +457,19 @@
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.2);
   animation: cash-burst 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+/* GSAP particle — thrown from a container's centre by useImpactFx (cash-out +
+   match-win bursts). Base sits dead-centre; the tween owns transform/opacity and
+   removes the node on completion. Spawned only when motion is allowed. */
+.fx-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  pointer-events: none;
 }
 .ticker {
   position: relative;
