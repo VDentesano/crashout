@@ -25,6 +25,7 @@ import {
 } from './game/economy';
 import { recordMatch } from './game/history';
 import HistoryPanel from './components/HistoryPanel';
+import LeaderboardPanel from './components/LeaderboardPanel';
 
 function fmt(m: number | null): string {
   return m === null ? 'BUST' : `${m.toFixed(2)}×`;
@@ -138,6 +139,7 @@ export default function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(ONBOARD_KEY));
   const [showHistory, setShowHistory] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const closeHelp = () => {
     localStorage.setItem(ONBOARD_KEY, '1');
@@ -226,6 +228,17 @@ export default function App() {
                   >
                     <span className="sheet-ico">📋</span>
                     Match history
+                  </button>
+                  <button
+                    className="sheet-row"
+                    onClick={() => {
+                      setShowLeaderboard(true);
+                      setShowMenu(false);
+                    }}
+                    role="menuitem"
+                  >
+                    <span className="sheet-ico">🏆</span>
+                    Leaderboard
                   </button>
                   <button
                     className="sheet-row"
@@ -442,6 +455,7 @@ export default function App() {
 
       {import.meta.env.DEV && showGate && <GatePanel />}
       {showHistory && <HistoryPanel onClose={() => setShowHistory(false)} />}
+      {showLeaderboard && <LeaderboardPanel onClose={() => setShowLeaderboard(false)} />}
       {showHelp && <Onboarding onClose={closeHelp} />}
     </div>
   );
