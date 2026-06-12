@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import CurveCanvas from './components/CurveCanvas';
+import Onboarding, { ONBOARD_KEY } from './components/Onboarding';
+import { useCountUp } from './hooks/useCountUp';
 import { useMatch } from './game/useMatch';
 import { decideOutcome, roundScore, scoreMatch } from './game/ghosts';
 import { ROUNDS_PER_MATCH } from './game/types';
@@ -48,30 +50,44 @@ export default function App() {
       ? 'Most points wins — your best 4 of 5 rounds count (worst dropped). A crash scores 0.'
       : 'Most points across 5 rounds wins. Each round banks your cash-out; a crash scores 0.';
 
+  // A match win trumps everything visually — even if the player busted the final
+  // round, taking the duel on points should read as celebration, not a crash.
+  const matchWon = matchEnd && matchResult!.outcome === 'win';
+
   // When paused on a resolved round (roundEnd / matchEnd), paint the crash FX
-  // only if the player busted that round.
+  // only if the player busted that round — unless they just won the match.
   const lastBust = roundResult?.player.multiplier === null;
-  const showCrashFx = (roundEnd || matchEnd) && lastBust;
+  const showCrashFx = (roundEnd || matchEnd) && lastBust && !matchWon;
   const crashed = (roundEnd || matchEnd) && lastBust;
 
   const [showGate, setShowGate] = useState(false);
+  const [showHelp, setShowHelp] = useState(() => !localStorage.getItem(ONBOARD_KEY));
 
-  // Space / Enter — cash out while live, otherwise advance the ladder.
+  const closeHelp = () => {
+    localStorage.setItem(ONBOARD_KEY, '1');
+    setShowHelp(false);
+  };
+
+  // Space / Enter — cash out while live, otherwise advance the ladder. While the
+  // onboarding overlay is up it intercepts the key to dismiss itself, so the
+  // first press enters the duel instead of acting on the board underneath.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        if (running && !playerCashedOut) cashOut();
+        if (showHelp) closeHelp();
+        else if (running && !playerCashedOut) cashOut();
         else if (!running) advance();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [running, playerCashedOut, advance, cashOut]);
+  }, [showHelp, running, playerCashedOut, advance, cashOut]);
 
   return (
-    <div className={`app ${showCrashFx ? 'is-crashed' : ''}`}>
+    <div className={`app ${showCrashFx ? 'is-crashed' : ''} ${matchWon ? 'is-won' : ''}`}>
       {showCrashFx && <div className="redflash" key={state.nonce} />}
+      {matchWon && <div className="voltflash" key={`win-${state.nonce}`} />}
 
       <header className="hud">
         <div className="brand">
@@ -96,7 +112,10 @@ export default function App() {
             <i className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
             {isBackendConnected ? 'LIVE' : 'LOCAL'}
           </span>
-          <button className="ghosttoggle" onClick={() => setShowGate((v) => !v)}>
+          <button className="ghosttoggle" onClick={() => setShowHelp(true)} title="How to play">
+            ?
+          </button>
+          <button className="ghosttoggle" onClick={() => setShowGate((v) => !v)} title="Local gate instrument">
             ∑
           </button>
         </div>
@@ -173,6 +192,7 @@ export default function App() {
             }
             kind={state.playerCashed !== null ? 'cashed' : crashed ? 'bust' : 'idle'}
             align="right"
+            won={matchWon}
           />
         </div>
 
@@ -245,6 +265,7 @@ export default function App() {
       </footer>
 
       {showGate && <GatePanel />}
+      {showHelp && <Onboarding onClose={closeHelp} />}
     </div>
   );
 }
@@ -256,6 +277,7 @@ function ScorePanel({
   roundLine,
   kind,
   align,
+  won = false,
 }: {
   who: string;
   name: string;
@@ -263,13 +285,15 @@ function ScorePanel({
   roundLine: string | null;
   kind: 'idle' | 'cashed' | 'bust';
   align: 'left' | 'right';
+  won?: boolean;
 }) {
+  const shown = useCountUp(score);
   return (
-    <div className={`panel ${align} ${kind}`}>
+    <div className={`panel ${align} ${kind} ${won ? 'won' : ''}`}>
       <span className="who">{who}</span>
       <span className="pname">{name}</span>
       <span className="score">
-        {score.toFixed(2)}
+        {shown.toFixed(2)}
         <i>pts</i>
       </span>
       {roundLine && <span className="roundline">{roundLine}</span>}

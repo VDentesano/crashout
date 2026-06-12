@@ -21,6 +21,18 @@
   animation: flash-red 0.5s ease-out forwards;
 }
 
+.voltflash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, rgba(0, 255, 133, 0.85), transparent 62%);
+  animation: flash-volt 0.7s ease-out forwards;
+}
+.app.is-won {
+  animation: win-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* ── HUD ───────────────────────────────────────────── */
 .hud {
   display: flex;
@@ -250,6 +262,14 @@
 .panel.bust {
   border-color: var(--crash-dim);
   box-shadow: inset 0 0 24px rgba(255, 59, 48, 0.08);
+}
+.panel.won {
+  border-color: var(--volt);
+  box-shadow: inset 0 0 28px rgba(0, 255, 133, 0.14), 0 0 30px rgba(0, 255, 133, 0.22);
+  animation: win-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+}
+.panel.won .score {
+  color: var(--volt);
 }
 .who {
   font-size: 10px;
@@ -531,4 +551,117 @@
   font-size: 10px;
   line-height: 1.5;
   color: var(--muted-2);
+}
+
+/* ── Onboarding overlay ────────────────────────────── */
+.onboard {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(6, 6, 10, 0.78);
+  backdrop-filter: blur(7px);
+  animation: overlay-in 0.25s ease-out;
+}
+.onboard-card {
+  width: min(440px, 100%);
+  background: linear-gradient(180deg, var(--bg-raise), #0b0b11);
+  border: 1px solid var(--volt-dim);
+  border-radius: 18px;
+  padding: clamp(22px, 5vw, 32px);
+  box-shadow: 0 0 0 1px rgba(0, 255, 133, 0.08), 0 26px 70px rgba(0, 0, 0, 0.65),
+    inset 0 0 60px rgba(0, 255, 133, 0.04);
+  animation: card-in 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.onboard-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  color: var(--volt);
+}
+.onboard-brand {
+  font-weight: 700;
+  font-size: clamp(30px, 9vw, 42px);
+  letter-spacing: 0.1em;
+  line-height: 1.1;
+  margin: 6px 0 12px;
+  color: var(--ink);
+}
+.onboard-brand span {
+  color: var(--volt);
+  text-shadow: 0 0 22px rgba(0, 255, 133, 0.55);
+}
+.onboard-lede {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.onboard-lede b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.onboard-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.onboard-steps li {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  opacity: 0;
+  animation: step-in 0.4s ease-out forwards;
+}
+.step-n {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--volt-dim);
+  letter-spacing: 0.05em;
+}
+.step-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.step-body b {
+  display: block;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.onboard-go {
+  width: 100%;
+  padding: 17px;
+  border-radius: 13px;
+  background: var(--volt);
+  color: #03130b;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 36px rgba(0, 255, 133, 0.32);
+  transition: transform 0.07s, filter 0.15s;
+}
+.onboard-go:hover {
+  filter: brightness(1.08);
+}
+.onboard-go:active {
+  transform: translateY(2px) scale(0.99);
+}
+.onboard-foot {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+}
+.onboard-foot strong {
+  color: var(--volt);
+  font-weight: 600;
 }

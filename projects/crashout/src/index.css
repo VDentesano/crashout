@@ -90,6 +90,33 @@ button {
   to { opacity: 0; }
 }
 
+@keyframes flash-volt {
+  0% { opacity: 0; }
+  18% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+@keyframes win-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes step-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
