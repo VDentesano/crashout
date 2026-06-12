@@ -3,15 +3,22 @@
    crash-red, a monospace ticker as the centrepiece. Locked palette. */
 
 :root {
-  --bg: #0a0a0f;
-  --bg-raise: #12121a;
-  --panel: #15151f;
-  --line: #23232f;
+  /* ── Base surfaces — deeper void + a real 3-tier ladder (Cycle 13 visual
+     system). Each step is ~10–14 lightness pts apart so panels actually float
+     instead of sitting on one flat plane. ── */
+  --bg: #060609;          /* void — body background */
+  --bg-raise: #0e0e18;    /* raised base, stage backdrop */
+  --panel: #121221;       /* standard card/panel surface */
+  --surface-hi: #1a1a2e;  /* elevated — modals, floating elements */
+  --line-faint: #1c1c2a;  /* barely-there structural divisions */
+  --line: #252537;        /* standard border */
+  --line-bright: #343450; /* highlighted / active border */
+
   --volt: #00ff85;
   --volt-dim: #0a8f54;
   --crash: #ff3b30;
   --crash-dim: #7a201b;
-  --ink: #f4f5f7;
+  --ink: #f0f2f8;
   --muted: #7c8092;
   --muted-2: #4b4f5e; /* decorative only (dots/lines) — NOT body text */
   --muted-rd: #9aa0b4; /* readable body-text tier (~7:1 AA), replaces --muted-2 as text */
@@ -22,6 +29,13 @@
   /* Multiplier heat — the climb runs hot before it ever turns crash-red */
   --heat: #ffd23f; /* ≥5x gold */
   --heat-amber: #ffb020; /* ≥10x deep amber */
+
+  /* Premium accent economy — violet marks achievement/cosmetic tier, gold marks
+     crypto value/reward. Wired into the system now; surfaced as features land. */
+  --accent: #8b5cf6;
+  --accent-dim: #2d1a5c;
+  --gold: #f5c842;
+  --gold-dim: #3a2c0a;
 
   --font-display: 'Chakra Petch', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -47,13 +61,18 @@ body {
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-  /* Atmosphere: faint scan grid + a volt glow bleeding up from the floor. */
+  /* Atmosphere: a layered, purposeful dark-casino space — volt bleeding up from
+     the floor, a cool violet wash high-left for depth, and a visible (not
+     whispered) scan grid. The deepest layer is a vertical gradient so the void
+     reads as a material, not an empty div. */
   background-image:
-    radial-gradient(120% 80% at 50% 120%, rgba(0, 255, 133, 0.07), transparent 60%),
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 100% 100%, 44px 44px, 44px 44px;
-  background-position: center, center, center;
+    radial-gradient(110% 75% at 50% 118%, rgba(0, 255, 133, 0.10), transparent 58%),
+    radial-gradient(70% 55% at 18% 12%, rgba(139, 92, 246, 0.07), transparent 60%),
+    linear-gradient(var(--line-faint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-faint) 1px, transparent 1px),
+    linear-gradient(180deg, #0b0b16 0%, #060609 60%);
+  background-size: 100% 100%, 100% 100%, 46px 46px, 46px 46px, 100% 100%;
+  background-position: center, center, center, center, center;
 }
 
 /* Grain overlay for texture. */
