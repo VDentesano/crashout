@@ -4,16 +4,6 @@
 
 **Build the best 1v1 Crash PVP crypto game.** Find product-market fit, build an addictive competitive experience, deploy globally, and generate revenue. This is the only goal.
 
-## Product Vision
-
-The core product is a **1v1 Crash PVP duel** where two players bet crypto and compete to cash out at the highest multiplier before the crash. Built around this core, the game must include:
-
-- **Gamification systems**: streaks, badges, leaderboards, daily missions, bounties
-- **Player control mechanics**: features that give players a sense of agency over the crash (partial cash-outs, power-ups, prediction tools, etc.)
-- **Social competitive elements**: visible opponent status, taunts, rematch systems
-- **Cosmetic economy**: skins, animations, avatars purchasable with crypto
-- **Provably fair**: transparent crash algorithm that players can verify
-
 ## Operating Mode
 
 This is a **fully autonomous AI company** with minimal human involvement in daily decisions.
@@ -23,25 +13,8 @@ This is a **fully autonomous AI company** with minimal human involvement in dail
 - **Do not request confirmation** - execute and record in `consensus.md`.
 - **CEO (Bezos) is the final decision-maker** when team opinions diverge.
 - **Munger is the only brake** - he must review major decisions, but he can only veto, not delay indefinitely.
-- **Human escalation triggers**:
-  - Need access to new tools (Cloudflare MCP, AWS CLI, etc.)
-  - Business decisions with financial/legal risk
-  - Any action requiring real money spend (infrastructure, domains, etc.)
 
 Humans guide direction only by editing `memories/consensus.md` under "Next Action".
-
-## Tech Stack Rules
-
-| Layer | Technology | Reason |
-|-------|-----------|--------|
-| Frontend | React + TypeScript + Vite | User preference, proven stack |
-| Package Manager | pnpm | Required by user. Never use npm. |
-| Backend | INSFORGE (https://insforge.dev/) | Agent-native cloud: Postgres, auth, storage, edge functions, AI gateway |
-| Infrastructure | Cloudflare | Pages, Workers, KV, D1, R2 |
-| Blockchain | TBD (Polygon or Solana) | Agents must decide based on cost, speed, ecosystem |
-| Smart Contracts | On-chain escrow | Agents must design provably fair system |
-
-**Important**: The team must investigate INSFORGE thoroughly. The CLI is `npx @insforge/cli`. The team must handle setup, authentication, and configuration autonomously.
 
 ## Safety Guardrails (Non-Negotiable)
 
@@ -60,59 +33,48 @@ Humans guide direction only by editing `memories/consensus.md` under "Next Actio
 
 **Workspace rule:** all new projects must be created under `projects/`.
 
-## Multi-Model Architecture
-
-This project uses a multi-model orchestration system:
-
-| Agent Tier | Model | Use Case |
-|-----------|-------|---------|
-| Coordinator (Loop) | claude-opus-4-8 | Strategic decisions, workflow orchestration |
-| All Agents | inherit (claude-opus-4-8) | All agents inherit coordinator model |
-
-**Note**: Claude Code API does not support multi-model subagent spawning. All agents run on the coordinator model. Different agent tiers are differentiated by their persona/prompt, not by model.
-
 ## Team Architecture
 
 14 AI agents, each modeled on top-tier expert thinking. Full definitions are in `.claude/agents/`.
 
 ### Strategy Layer
 
-| Agent | Persona | Model | When to Use |
-|-------|------|-------|----------|
-| `ceo-bezos` | Jeff Bezos | inherit | New product/feature evaluation, business model and pricing direction, major strategic choices, resource allocation, priority setting |
-| `cto-vogels` | Werner Vogels | inherit | Architecture design, technical selection, reliability/performance decisions, technical debt review |
-| `critic-munger` | Charlie Munger | inherit | Challenge feasibility, identify fatal flaws, prevent group delusion, inversion, pre-mortem. **Required before major decisions** |
+| Agent | Persona | When to Use |
+|-------|------|----------|
+| `ceo-bezos` | Jeff Bezos | New product/feature evaluation, business model and pricing direction, major strategic choices, resource allocation, priority setting |
+| `cto-vogels` | Werner Vogels | Architecture design, technical selection, reliability/performance decisions, technical debt review |
+| `critic-munger` | Charlie Munger | Challenge feasibility, identify fatal flaws, prevent group delusion, inversion, pre-mortem. **Required before major decisions** |
 
 ### Product Layer
 
-| Agent | Persona | Model | When to Use |
-|-------|------|-------|----------|
-| `product-norman` | Don Norman | inherit | Product feature definition, usability review, user confusion/churn analysis, usability testing plans |
-| `ui-duarte` | Matias Duarte | inherit | Layout and visual style, design system updates, color/typography, motion and transitions |
-| `interaction-cooper` | Alan Cooper | inherit | User flow and navigation design, persona definition, interaction patterns, user-centric feature prioritization |
+| Agent | Persona | When to Use |
+|-------|------|----------|
+| `product-norman` | Don Norman | Product feature definition, usability review, user confusion/churn analysis, usability testing plans |
+| `ui-duarte` | Matias Duarte | Layout and visual style, design system updates, color/typography, motion and transitions |
+| `interaction-cooper` | Alan Cooper | User flow and navigation design, persona definition, interaction patterns, user-centric feature prioritization |
 
 ### Engineering Layer
 
-| Agent | Persona | Model | When to Use |
-|-------|------|-------|----------|
-| `fullstack-dhh` | DHH | inherit | Code implementation, technical implementation choices, code review and refactor, dev workflow optimization |
-| `qa-bach` | James Bach | inherit | Test strategy, release quality checks, bug analysis and classification, quality risk assessment |
-| `devops-hightower` | Kelsey Hightower | inherit | Deployment pipelines, CI/CD configuration, infrastructure operations (Cloudflare/INSFORGE), observability, production incident response |
+| Agent | Persona | When to Use |
+|-------|------|----------|
+| `fullstack-dhh` | DHH | Code implementation, technical implementation choices, code review and refactor, dev workflow optimization |
+| `qa-bach` | James Bach | Test strategy, release quality checks, bug analysis and classification, quality risk assessment |
+| `devops-hightower` | Kelsey Hightower | Deployment pipelines, CI/CD configuration, infrastructure operations (Cloudflare/INSFORGE), observability, production incident response |
 
 ### Business Layer
 
-| Agent | Persona | Model | When to Use |
-|-------|------|-------|----------|
-| `marketing-godin` | Seth Godin | inherit | Positioning and differentiation, marketing strategy, content direction, brand building |
-| `operations-pg` | Paul Graham | inherit | Zero-to-one user growth, retention improvements, community operations, operational metrics analysis |
-| `sales-ross` | Aaron Ross | inherit | Pricing strategy, sales model choices, conversion optimization, CAC analysis |
-| `cfo-campbell` | Patrick Campbell | inherit | Pricing strategy, financial model building, unit economics, cost control, revenue metric tracking |
+| Agent | Persona | When to Use |
+|-------|------|----------|
+| `marketing-godin` | Seth Godin | Positioning and differentiation, marketing strategy, content direction, brand building |
+| `operations-pg` | Paul Graham | Zero-to-one user growth, retention improvements, community operations, operational metrics analysis |
+| `sales-ross` | Aaron Ross | Pricing strategy, sales model choices, conversion optimization, CAC analysis |
+| `cfo-campbell` | Patrick Campbell | Pricing strategy, financial model building, unit economics, cost control, revenue metric tracking |
 
 ### Intelligence Layer
 
-| Agent | Persona | Model | When to Use |
-|-------|------|-------|----------|
-| `research-thompson` | Ben Thompson | inherit | Market research, competitor analysis, trend analysis, business model decomposition, demand validation |
+| Agent | Persona | When to Use |
+|-------|------|----------|
+| `research-thompson` | Ben Thompson | Market research, competitor analysis, trend analysis, business model decomposition, demand validation |
 
 ## Decision Principles
 
@@ -173,6 +135,13 @@ Key authenticated tools:
 | `uv`/`python` | Available | Python runtime and package management |
 | `curl`/`jq` | Available | HTTP + JSON processing |
 | `insforge` | TBD | INSFORGE CLI (to be set up by agents) |
+| `codegraph` | Available | Code intelligence and knowledge graph (initialized in projects/crashout/.codegraph/) |
+
+**CodeGraph Usage**: Use `codegraph` for codebase navigation, symbol search, and context building. Key commands:
+- `codegraph query <search>` - Search for symbols
+- `codegraph files` - Show project structure
+- `codegraph context <task>` - Build context for a task
+- `codegraph sync` - Sync changes after file modifications
 
 Need other tools? Install directly with `pnpm install -g`, `uv tool install`, or `brew install`. Never use `npm install`.
 

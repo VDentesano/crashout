@@ -4,19 +4,13 @@ const els = {
   lastUpdate: document.getElementById("lastUpdate"),
   latency: document.getElementById("latency"),
 
-  guardianState: document.getElementById("guardianState"),
-  guardianMeta: document.getElementById("guardianMeta"),
   daemonState: document.getElementById("daemonState"),
   daemonMeta: document.getElementById("daemonMeta"),
   loopState: document.getElementById("loopState"),
   loopMeta: document.getElementById("loopMeta"),
-  autostartState: document.getElementById("autostartState"),
-  autostartMeta: document.getElementById("autostartMeta"),
 
-  cardGuardian: document.getElementById("cardGuardian"),
   cardDaemon: document.getElementById("cardDaemon"),
   cardLoop: document.getElementById("cardLoop"),
-  cardAutostart: document.getElementById("cardAutostart"),
 
   stateList: document.getElementById("stateList"),
   consensusText: document.getElementById("consensusText"),
@@ -148,16 +142,6 @@ function classForState(kind, state) {
     if (state === "stopped") return "warn";
     return "bad";
   }
-  if (kind === "guardian") {
-    if (state === "running") return "good";
-    if (state === "stopped" || state === "unsupported") return "warn";
-    return "bad";
-  }
-  if (kind === "autostart") {
-    if (state === "configured") return "good";
-    if (state === "not_configured" || state === "unsupported") return "warn";
-    return "bad";
-  }
   return "warn";
 }
 
@@ -181,8 +165,7 @@ function renderStateList(parsed, stateFile) {
     ["Loop Count", parsed.loop.loopCount || stateFile.LOOP_COUNT || "-"],
     ["Error Count", parsed.loop.errorCount || stateFile.ERROR_COUNT || "-"],
     ["Last Run", parsed.loop.lastRun || stateFile.LAST_RUN || "-"],
-    ["Loop Daemon Summary", parsed.loop.daemonSummary || "-"],
-    ["Daemon ActiveState", parsed.daemon.activeState || "-"],
+    ["Daemon State", parsed.daemon.activeState || "-"],
     ["Daemon SubState", parsed.daemon.subState || "-"],
   ];
 
@@ -198,16 +181,11 @@ async function fetchStatus() {
   const elapsed = Math.round(performance.now() - started);
 
   const parsed = data.parsed || {};
-  const guardian = parsed.guardian || {};
   const daemon = parsed.daemon || {};
   const loop = parsed.loop || {};
-  const autostart = parsed.autostart || {};
 
-  els.guardianState.textContent = (guardian.state || "unknown").toUpperCase();
-  els.guardianMeta.textContent = guardian.pid ? `PID ${guardian.pid}` : "PID --";
-  applyCardState(els.cardGuardian, "guardian", guardian.state);
-
-  els.daemonState.textContent = (daemon.state || "unknown").toUpperCase();
+  const daemonState = daemon.state || "unknown";
+  els.daemonState.textContent = daemonState.toUpperCase();
   els.daemonMeta.textContent = daemon.mainPid ? `MainPID ${daemon.mainPid}` : "MainPID --";
   applyCardState(els.cardDaemon, "daemon", daemon.state);
 
@@ -216,10 +194,6 @@ async function fetchStatus() {
   const loopPid = loop.pid ? `PID ${loop.pid}` : "PID --";
   els.loopMeta.textContent = `${loopCycle} | ${loopPid}`;
   applyCardState(els.cardLoop, "loop", loop.state);
-
-  els.autostartState.textContent = (autostart.state || "unknown").toUpperCase();
-  els.autostartMeta.textContent = autostart.raw || "Autostart";
-  applyCardState(els.cardAutostart, "autostart", autostart.state);
 
   renderStateList(parsed, data.stateFile || {});
 

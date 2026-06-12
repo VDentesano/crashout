@@ -54,7 +54,7 @@
 - **Dashboard**: http://127.0.0.1:8787
 - **Logs**: `logs/auto-loop.log`
 - **Consensus**: `memories/consensus.md`
-- **Current Model**: claude-opus-4-8
+- **Current Model**: claude-fable-5 (coordinator) + claude-sonnet-4-6 (subagents)
 
 ## Directory Structure
 

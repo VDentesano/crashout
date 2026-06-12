@@ -1,6 +1,5 @@
-.PHONY: start start-awake awake stop status last cycles monitor dashboard pause resume install uninstall team help clean-logs reset-consensus
+.PHONY: start stop status last cycles monitor dashboard pause resume install uninstall team help clean-logs reset-consensus
 
-UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
 ENGINE ?= claude
 MODEL ?= fable
 
@@ -8,27 +7,6 @@ MODEL ?= fable
 
 start: ## Start the auto-loop in foreground
 	./scripts/core/auto-loop.sh
-
-start-awake: ## Start loop and prevent macOS sleep while running
-ifeq ($(UNAME_S),Darwin)
-	caffeinate -d -i -s $(MAKE) start
-else
-	@echo "start-awake is macOS-only (requires caffeinate)."
-	@echo "Use 'make start' on Linux/WSL."
-	@exit 1
-endif
-
-awake: ## Prevent macOS sleep while current loop PID is running
-ifeq ($(UNAME_S),Darwin)
-	@test -f .auto-loop.pid || (echo "No .auto-loop.pid found. Run 'make start' first."; exit 1)
-	@pid=$$(cat .auto-loop.pid); \
-	echo "Keeping Mac awake while PID $$pid is running..."; \
-	caffeinate -d -i -s -w $$pid
-else
-	@echo "awake is macOS-only (requires caffeinate)."
-	@echo "WSL usually inherits Windows power policy; keep your host from sleeping if needed."
-	@exit 1
-endif
 
 stop: ## Stop the loop gracefully
 	./scripts/core/stop-loop.sh
@@ -50,39 +28,23 @@ monitor: ## Tail live logs (Ctrl+C to exit)
 dashboard: ## Start local dashboard server
 	python3 dashboard/server.py
 
-# === Daemon (macOS launchd / Linux systemd --user) ===
+# === Daemon (systemd --user) ===
 
-install: ## Install daemon (macOS launchd or Linux/WSL systemd --user)
-ifeq ($(UNAME_S),Darwin)
-	./scripts/macos/install-daemon.sh
-else
-	./scripts/wsl/install-wsl-daemon.sh
-endif
+install: ## Install systemd --user daemon (auto-start + auto-restart)
+	./scripts/linux/install-daemon.sh
 
-uninstall: ## Remove daemon (macOS launchd or Linux/WSL systemd --user)
-ifeq ($(UNAME_S),Darwin)
-	./scripts/macos/install-daemon.sh --uninstall
-else
-	./scripts/wsl/uninstall-wsl-daemon.sh
-endif
+uninstall: ## Remove systemd --user daemon
+	./scripts/linux/uninstall-daemon.sh
 
 pause: ## Pause daemon (no auto-restart)
-ifeq ($(UNAME_S),Darwin)
-	./scripts/core/stop-loop.sh --pause-daemon
-else
-	@command -v systemctl >/dev/null 2>&1 || (echo "systemctl not found. Ensure WSL systemd is enabled."; exit 1)
+	@command -v systemctl >/dev/null 2>&1 || (echo "systemctl not found. Is systemd installed?"; exit 1)
 	@systemctl --user stop auto-company.service
 	@echo "auto-company.service paused (stopped)."
-endif
 
 resume: ## Resume paused daemon
-ifeq ($(UNAME_S),Darwin)
-	./scripts/core/stop-loop.sh --resume-daemon
-else
-	@command -v systemctl >/dev/null 2>&1 || (echo "systemctl not found. Ensure WSL systemd is enabled."; exit 1)
+	@command -v systemctl >/dev/null 2>&1 || (echo "systemctl not found. Is systemd installed?"; exit 1)
 	@systemctl --user start auto-company.service
 	@echo "auto-company.service resumed (started)."
-endif
 
 # === Interactive ===
 

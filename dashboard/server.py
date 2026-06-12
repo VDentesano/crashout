@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Local dashboard server for Auto Company (Windows + WSL + macOS runtime)."""
+"""Local dashboard server for Auto Company (Linux runtime)."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import platform
 import re
 import subprocess
 import time
@@ -21,14 +20,6 @@ from urllib.parse import parse_qs, urlparse
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD_DIR = Path(__file__).resolve().parent
 
-WINDOWS_STATUS_SCRIPT = REPO_ROOT / "scripts" / "windows" / "status-win.ps1"
-WINDOWS_START_SCRIPT = REPO_ROOT / "scripts" / "windows" / "start-win.ps1"
-WINDOWS_STOP_SCRIPT = REPO_ROOT / "scripts" / "windows" / "stop-win.ps1"
-
-MACOS_STATUS_SCRIPT = REPO_ROOT / "scripts" / "macos" / "status-mac.sh"
-MACOS_START_SCRIPT = REPO_ROOT / "scripts" / "macos" / "install-daemon.sh"
-MACOS_STOP_SCRIPT = REPO_ROOT / "scripts" / "core" / "stop-loop.sh"
-
 LINUX_STATUS_SCRIPT = REPO_ROOT / "scripts" / "core" / "monitor.sh"
 LINUX_START_SCRIPT = REPO_ROOT / "scripts" / "core" / "auto-loop.sh"
 LINUX_STOP_SCRIPT = REPO_ROOT / "scripts" / "core" / "stop-loop.sh"
@@ -36,74 +27,6 @@ LINUX_STOP_SCRIPT = REPO_ROOT / "scripts" / "core" / "stop-loop.sh"
 LOG_FILE = REPO_ROOT / "logs" / "auto-loop.log"
 STATE_FILE = REPO_ROOT / ".auto-loop-state"
 CONSENSUS_FILE = REPO_ROOT / "memories" / "consensus.md"
-
-WINDOWS_HOST = "windows"
-MACOS_HOST = "macos"
-LINUX_HOST = "linux"
-
-
-def ps_quote(value: str) -> str:
-    return "'" + value.replace("'", "''") + "'"
-
-
-def detect_host_kind(system_name: str | None = None) -> str:
-    name = system_name or platform.system()
-    if name == "Windows":
-        return WINDOWS_HOST
-    if name == "Darwin":
-        return MACOS_HOST
-    if name == "Linux":
-        return MACOS_HOST  # Linux uses same shell script runner as macOS
-    raise RuntimeError(
-        "Dashboard only supports Windows hosts (with WSL backend), macOS, and Linux hosts."
-    )
-
-
-def run_powershell_script(
-    script_path: Path, args: list[str] | None = None, timeout: int = 90
-) -> dict[str, Any]:
-    invocation = f"& {ps_quote(str(script_path))}"
-    if args:
-        invocation += " " + " ".join(ps_quote(arg) for arg in args)
-
-    cmd = [
-        "powershell",
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-Command",
-        (
-            "$ErrorActionPreference='Stop'; "
-            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; "
-            "$OutputEncoding=[System.Text.Encoding]::UTF8; "
-            f"{invocation} *>&1 | Out-String"
-        ),
-    ]
-
-    start = time.time()
-    proc = subprocess.run(
-        cmd,
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=timeout,
-    )
-    elapsed_ms = int((time.time() - start) * 1000)
-
-    output = (proc.stdout or "").strip()
-    error = (proc.stderr or "").strip()
-    combined = output
-    if error:
-        combined = f"{output}\n{error}".strip()
-
-    return {
-        "ok": proc.returncode == 0,
-        "exitCode": proc.returncode,
-        "elapsedMs": elapsed_ms,
-        "output": combined,
-    }
 
 
 def run_shell_script(
@@ -136,42 +59,6 @@ def run_shell_script(
         "exitCode": proc.returncode,
         "elapsedMs": elapsed_ms,
         "output": combined,
-    }
-
-
-def get_host_profile(system_name: str | None = None) -> dict[str, Any]:
-    host = detect_host_kind(system_name)
-    if host == WINDOWS_HOST:
-        return {
-            "host": host,
-            "runner": run_powershell_script,
-            "parser": parse_windows_status_output,
-            "status_script": WINDOWS_STATUS_SCRIPT,
-            "start_script": WINDOWS_START_SCRIPT,
-            "start_args": None,
-            "stop_script": WINDOWS_STOP_SCRIPT,
-            "stop_args": None,
-        }
-    if host == LINUX_HOST:
-        return {
-            "host": host,
-            "runner": run_shell_script,
-            "parser": parse_macos_status_output,
-            "status_script": LINUX_STATUS_SCRIPT,
-            "start_script": LINUX_START_SCRIPT,
-            "start_args": None,
-            "stop_script": LINUX_STOP_SCRIPT,
-            "stop_args": None,
-        }
-    return {
-        "host": host,
-        "runner": run_shell_script,
-        "parser": parse_macos_status_output,
-        "status_script": MACOS_STATUS_SCRIPT,
-        "start_script": MACOS_START_SCRIPT,
-        "start_args": None,
-        "stop_script": MACOS_STOP_SCRIPT,
-        "stop_args": ["--pause-daemon"],
     }
 
 
@@ -235,20 +122,8 @@ def parse_positive_int(value: str | None, default: int) -> int:
     return parsed if parsed > 0 else default
 
 
-def parse_key_values(rows: list[str]) -> dict[str, str]:
-    values: dict[str, str] = {}
-    for row in rows:
-        if "=" not in row:
-            continue
-        key, value = row.split("=", 1)
-        values[key.strip()] = value.strip()
-    return values
-
-
 def blank_parsed() -> dict[str, Any]:
     return {
-        "guardian": {"state": "unknown", "pid": None, "raw": ""},
-        "autostart": {"state": "unknown", "raw": ""},
         "daemon": {
             "state": "unknown",
             "activeState": "unknown",
@@ -272,76 +147,80 @@ def blank_parsed() -> dict[str, Any]:
     }
 
 
-def parse_windows_status_output(raw: str) -> dict[str, Any]:
+def parse_linux_status_output(raw: str) -> dict[str, Any]:
+    """Parse Linux monitor.sh --status output.
+
+    monitor.sh outputs:
+      === Auto Company Status ===
+      Loop: RUNNING (PID 12345) / STOPPED / NOT RUNNING
+      Daemon: ACTIVE (systemd --user auto-company.service) / NOT INSTALLED / etc.
+      [blank line]
+      STATE_FILE contents (key=value pairs)
+      === Latest Consensus ===
+      ...
+      === Recent Log ===
+      ...
+    """
     sections = parse_sections(raw)
     parsed = blank_parsed()
 
-    guardian_rows = sections.get("Windows Guardian", [])
-    guardian_line = next(
-        (x.strip() for x in guardian_rows if x.strip().startswith("Awake guardian:")),
+    # Daemon: extract from status rows
+    status_rows = sections.get("Auto Company Status", [])
+    daemon_line = next(
+        (x.strip() for x in status_rows if x.strip().startswith("Daemon:")),
         "",
     )
-    parsed["guardian"]["raw"] = "\n".join(guardian_rows).strip()
-    if guardian_line:
-        parsed["guardian"]["raw"] = guardian_line
-        if "STOPPED" in guardian_line:
-            parsed["guardian"]["state"] = "stopped"
-        elif "RUNNING" in guardian_line:
-            parsed["guardian"]["state"] = "running"
-            pid_match = re.search(r"PID (\d+)", guardian_line)
-            parsed["guardian"]["pid"] = int(pid_match.group(1)) if pid_match else None
-
-    autostart_rows = sections.get("Windows Autostart Task", [])
-    autostart_line = next(
-        (x.strip() for x in autostart_rows if x.strip().startswith("Autostart:")),
-        "",
-    )
-    parsed["autostart"]["raw"] = "\n".join(autostart_rows).strip()
-    if autostart_line:
-        parsed["autostart"]["raw"] = autostart_line
-        if "NOT CONFIGURED" in autostart_line:
-            parsed["autostart"]["state"] = "not_configured"
-        elif "CONFIGURED" in autostart_line:
-            parsed["autostart"]["state"] = "configured"
-
-    daemon_rows = sections.get("WSL Daemon (systemd --user)", [])
-    parsed["daemon"]["raw"] = "\n".join(daemon_rows).strip()
-    daemon_compact = [x.strip() for x in daemon_rows if x.strip()]
-    if daemon_compact:
-        first = daemon_compact[0]
-        lowered = first.lower()
-        if "not installed" in lowered:
-            parsed["daemon"]["state"] = "not_installed"
-        elif first == "active":
+    parsed["daemon"]["raw"] = daemon_line or "No daemon info"
+    if daemon_line:
+        if "ACTIVE" in daemon_line:
             parsed["daemon"]["state"] = "active"
-        elif first in {"inactive", "activating", "failed"}:
+            parsed["daemon"]["activeState"] = "active"
+            parsed["daemon"]["subState"] = "running"
+        elif "ENABLED" in daemon_line:
             parsed["daemon"]["state"] = "inactive"
-        for row in daemon_compact:
-            if row.startswith("MainPID="):
-                parsed["daemon"]["mainPid"] = parse_int(row.split("=", 1)[1])
-            elif row.startswith("ActiveState="):
-                parsed["daemon"]["activeState"] = row.split("=", 1)[1].strip()
-            elif row.startswith("SubState="):
-                parsed["daemon"]["subState"] = row.split("=", 1)[1].strip()
+            parsed["daemon"]["activeState"] = "inactive"
+            parsed["daemon"]["subState"] = "dead"
+        elif "NOT INSTALLED" in daemon_line:
+            parsed["daemon"]["state"] = "not_installed"
+            parsed["daemon"]["activeState"] = "not_installed"
+            parsed["daemon"]["subState"] = "not_installed"
+        elif "N/A" in daemon_line:
+            parsed["daemon"]["state"] = "unsupported"
+            parsed["daemon"]["activeState"] = "n/a"
+            parsed["daemon"]["subState"] = "n/a"
+        else:
+            parsed["daemon"]["state"] = "unknown"
 
-    loop_rows = sections.get("Loop Status (scripts/core/monitor.sh)", [])
-    if not loop_rows:
-        loop_rows = sections.get("Loop Status (monitor.sh)", [])
-    loop_status_rows = sections.get("Auto Company Status", [])
-    merged_loop_rows = list(loop_rows) + list(loop_status_rows)
-    parsed["loop"]["raw"] = "\n".join(merged_loop_rows).strip()
-    for row in (x.strip() for x in merged_loop_rows if x.strip()):
-        if row.startswith("Loop:"):
-            if "NOT RUNNING" in row or "STOPPED" in row:
-                parsed["loop"]["state"] = "stopped"
-                parsed["loop"]["pid"] = None
-            elif "RUNNING" in row:
-                parsed["loop"]["state"] = "running"
-                pid_match = re.search(r"PID (\d+)", row)
-                parsed["loop"]["pid"] = int(pid_match.group(1)) if pid_match else None
-        elif row.startswith("Daemon:"):
-            parsed["loop"]["daemonSummary"] = row.replace("Daemon:", "", 1).strip()
-        elif row.startswith("ENGINE="):
+    # Loop: extract PID and state
+    loop_line = next(
+        (x.strip() for x in status_rows if x.strip().startswith("Loop:")),
+        "",
+    )
+    parsed["loop"]["raw"] = loop_line or "No loop info"
+    if loop_line:
+        if "RUNNING" in loop_line:
+            parsed["loop"]["state"] = "running"
+            pid_match = re.search(r"PID (\d+)", loop_line)
+            parsed["loop"]["pid"] = int(pid_match.group(1)) if pid_match else None
+        elif "STOPPED" in loop_line or "NOT RUNNING" in loop_line:
+            parsed["loop"]["state"] = "stopped"
+            parsed["loop"]["pid"] = None
+
+    # State file (key=value pairs) appears after the status section
+    state_rows = []
+    in_state = False
+    for row in raw.splitlines():
+        stripped = row.strip()
+        if stripped.startswith("==="):
+            in_state = False
+            continue
+        if in_state and "=" in stripped:
+            state_rows.append(stripped)
+        if stripped.startswith("Loop:") or stripped.startswith("Daemon:"):
+            in_state = True
+
+    for row in state_rows:
+        if row.startswith("ENGINE="):
             parsed["loop"]["engine"] = row.split("=", 1)[1].strip()
         elif row.startswith("MODEL="):
             parsed["loop"]["model"] = row.split("=", 1)[1].strip()
@@ -351,45 +230,6 @@ def parse_windows_status_output(raw: str) -> dict[str, Any]:
             parsed["loop"]["errorCount"] = row.split("=", 1)[1].strip()
         elif row.startswith("LOOP_COUNT="):
             parsed["loop"]["loopCount"] = row.split("=", 1)[1].strip()
-
-    parsed["consensusPreview"] = "\n".join(sections.get("Latest Consensus", [])).strip()
-    parsed["recentLog"] = "\n".join(sections.get("Recent Log", [])).strip()
-    return parsed
-
-
-def parse_macos_status_output(raw: str) -> dict[str, Any]:
-    sections = parse_sections(raw)
-    parsed = blank_parsed()
-
-    guardian_fields = parse_key_values(sections.get("Guardian", []))
-    parsed["guardian"]["state"] = guardian_fields.get("State", "unknown") or "unknown"
-    parsed["guardian"]["pid"] = parse_int(guardian_fields.get("Pid"))
-    parsed["guardian"]["raw"] = guardian_fields.get("Raw", "")
-
-    daemon_fields = parse_key_values(sections.get("Daemon", []))
-    daemon_state = daemon_fields.get("State", "unknown") or "unknown"
-    parsed["daemon"]["state"] = daemon_state
-    parsed["daemon"]["mainPid"] = parse_int(daemon_fields.get("MainPID"))
-    parsed["daemon"]["raw"] = daemon_fields.get("Raw", "")
-    parsed["daemon"]["activeState"] = daemon_fields.get("ActiveState", daemon_state)
-    parsed["daemon"]["subState"] = daemon_fields.get("SubState", "unknown")
-
-    autostart_fields = parse_key_values(sections.get("Autostart", []))
-    parsed["autostart"]["state"] = autostart_fields.get("State", "unknown") or "unknown"
-    parsed["autostart"]["raw"] = autostart_fields.get("Raw", "")
-
-    loop_fields = parse_key_values(sections.get("Loop", []))
-    parsed["loop"]["state"] = loop_fields.get("State", "unknown") or "unknown"
-    parsed["loop"]["pid"] = parse_int(loop_fields.get("Pid"))
-    parsed["loop"]["raw"] = "\n".join(sections.get("Loop", [])).strip()
-    parsed["loop"]["daemonSummary"] = loop_fields.get("DaemonSummary", "unknown")
-
-    state_file_fields = parse_key_values(sections.get("State File", []))
-    parsed["loop"]["engine"] = state_file_fields.get("ENGINE", "")
-    parsed["loop"]["model"] = state_file_fields.get("MODEL", "")
-    parsed["loop"]["lastRun"] = state_file_fields.get("LAST_RUN", "")
-    parsed["loop"]["errorCount"] = state_file_fields.get("ERROR_COUNT", "")
-    parsed["loop"]["loopCount"] = state_file_fields.get("LOOP_COUNT", "")
 
     parsed["consensusPreview"] = "\n".join(sections.get("Latest Consensus", [])).strip()
     parsed["recentLog"] = "\n".join(sections.get("Recent Log", [])).strip()
@@ -407,35 +247,27 @@ def read_state_file_pairs() -> dict[str, str]:
     return state_pairs
 
 
-def run_status_command(system_name: str | None = None) -> dict[str, Any]:
-    profile = get_host_profile(system_name)
-    runner = profile["runner"]
-    return runner(profile["status_script"], timeout=90)
+def run_status_command() -> dict[str, Any]:
+    return run_shell_script(LINUX_STATUS_SCRIPT, args=["--status"], timeout=90)
 
 
-def run_dashboard_action(action: str, system_name: str | None = None) -> dict[str, Any]:
-    profile = get_host_profile(system_name)
+def run_dashboard_action(action: str) -> dict[str, Any]:
     if action == "start":
-        return profile["runner"](
-            profile["start_script"], args=profile["start_args"], timeout=120
-        )
+        return run_shell_script(LINUX_START_SCRIPT, timeout=120)
     if action == "stop":
-        return profile["runner"](
-            profile["stop_script"], args=profile["stop_args"], timeout=120
-        )
+        return run_shell_script(LINUX_STOP_SCRIPT, timeout=120)
     if action == "refresh":
-        return profile["runner"](profile["status_script"], timeout=90)
+        return run_shell_script(LINUX_STATUS_SCRIPT, args=["--status"], timeout=90)
     raise ValueError(f"Unsupported dashboard action: {action}")
 
 
-def parse_status_output(raw: str, system_name: str | None = None) -> dict[str, Any]:
-    profile = get_host_profile(system_name)
-    return profile["parser"](raw)
+def parse_status_output(raw: str) -> dict[str, Any]:
+    return parse_linux_status_output(raw)
 
 
-def gather_status_payload(system_name: str | None = None) -> dict[str, Any]:
-    result = run_status_command(system_name)
-    parsed = parse_status_output(result["output"], system_name)
+def gather_status_payload() -> dict[str, Any]:
+    result = run_status_command()
+    parsed = parse_status_output(result["output"])
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "ok": result["ok"],
@@ -541,16 +373,10 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8787)
     args = parser.parse_args()
 
-    try:
-        host_kind = detect_host_kind()
-    except RuntimeError as exc:
-        print(f"[dashboard] {exc}")
-        raise SystemExit(1) from exc
-
     server = ThreadingHTTPServer((args.host, args.port), DashboardHandler)
     print(f"[dashboard] serving on http://{args.host}:{args.port}")
     print(f"[dashboard] repo: {REPO_ROOT}")
-    print(f"[dashboard] host: {host_kind}")
+    print(f"[dashboard] host: linux")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

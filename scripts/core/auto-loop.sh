@@ -39,24 +39,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # === Load .auto-loop.env if present ===
-load_env_file() {
-    local env_file="$PROJECT_DIR/.auto-loop.env"
-    if [ -f "$env_file" ]; then
-        while IFS='=' read -r key value; do
-            # Skip comments and empty lines
-            [[ "$key" =~ ^#.*$ ]] && continue
-            [[ -z "$key" ]] && continue
-            # Trim whitespace
-            key=$(echo "$key" | xargs)
-            value=$(echo "$value" | xargs)
-            # Only export if not already set in environment
-            if [ -z "${!key:-}" ]; then
-                export "$key=$value"
-            fi
-        done < "$env_file"
-    fi
-}
-load_env_file
+if [ -f "$PROJECT_DIR/.auto-loop.env" ]; then
+    set -a
+    source "$PROJECT_DIR/.auto-loop.env"
+    set +a
+fi
 
 LOG_DIR="$PROJECT_DIR/logs"
 CONSENSUS_FILE="$PROJECT_DIR/memories/consensus.md"
@@ -71,6 +58,7 @@ MODEL="${MODEL:-}"
 MODEL_LABEL="${MODEL:-config-default}"
 CLAUDE_BIN="${CLAUDE_BIN:-}"
 CLAUDE_PERMISSION_MODE="${CLAUDE_PERMISSION_MODE:-bypassPermissions}"
+CLAUDE_EFFORT="${CLAUDE_EFFORT:-max}"
 CODEX_BIN="${CODEX_BIN:-}"
 CODEX_SANDBOX_MODE="${CODEX_SANDBOX_MODE:-danger-full-access}"
 LOOP_INTERVAL="${LOOP_INTERVAL:-30}"
@@ -319,7 +307,7 @@ resolve_codex_bin() {
         fi
     fi
 
-    # Prefer WSL-local Codex installed via nvm.
+    # Prefer Codex installed via nvm.
     local nvm_candidate=""
     for candidate in "$HOME"/.nvm/versions/node/*/bin/codex; do
         if [ -x "$candidate" ]; then
@@ -360,7 +348,7 @@ resolve_claude_bin() {
         fi
     fi
 
-    # Prefer WSL-local Claude CLI installed via nvm.
+    # Prefer Claude CLI installed via nvm.
     local nvm_candidate=""
     for candidate in "$HOME"/.nvm/versions/node/*/bin/claude; do
         if [ -x "$candidate" ]; then
@@ -470,6 +458,9 @@ run_claude_cycle() {
         fi
         if [ -n "$CLAUDE_PERMISSION_MODE" ]; then
             claude_cmd+=("--permission-mode" "$CLAUDE_PERMISSION_MODE")
+        fi
+        if [ -n "$CLAUDE_EFFORT" ]; then
+            claude_cmd+=("--effort" "$CLAUDE_EFFORT")
         fi
         "${claude_cmd[@]}"
     ) > "$output_file" 2>&1 &
@@ -596,9 +587,9 @@ fi
 # Check dependencies
 if ! RESOLVED_ENGINE_BIN="$(resolve_engine_bin)"; then
     if [ "$ENGINE" = "claude" ]; then
-        echo "Error: Claude CLI not found. Install Claude Code in WSL and verify with 'claude --version'."
+        echo "Error: Claude CLI not found. Install Claude Code and verify with 'claude --version'."
     else
-        echo "Error: Codex CLI not found. Install Codex in WSL and verify with 'codex --version'."
+        echo "Error: Codex CLI not found. Install Codex CLI and verify with 'codex --version'."
     fi
     exit 1
 fi
@@ -627,15 +618,6 @@ else
 fi
 log "Engine bin: $RESOLVED_ENGINE_BIN"
 engine_version=$("$RESOLVED_ENGINE_BIN" --version 2>/dev/null | head -n1 || true)
-case "$RESOLVED_ENGINE_BIN" in
-    /mnt/c/*)
-        if [ "$ENGINE" = "codex" ]; then
-            log "Warning: Codex binary resolves to Windows-mounted path. Prefer WSL-local install for stability."
-        else
-            log "Warning: Claude binary resolves to Windows-mounted path. Prefer WSL-local install for stability."
-        fi
-        ;;
-esac
 if [ -n "$engine_version" ]; then
     if [ "$ENGINE" = "codex" ]; then
         log "Codex version: $engine_version"

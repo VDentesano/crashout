@@ -16,15 +16,9 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOG_DIR="$PROJECT_DIR/logs"
 STATE_FILE="$PROJECT_DIR/.auto-loop-state"
 PID_FILE="$PROJECT_DIR/.auto-loop.pid"
-PAUSE_FLAG="$PROJECT_DIR/.auto-loop-paused"
-LABEL="com.autocompany.loop"
-OS_NAME="$(uname -s)"
-HAS_LAUNCHCTL=0
+SERVICE_NAME="auto-company.service"
 HAS_SYSTEMD_USER=0
 
-if [ "$OS_NAME" = "Darwin" ] && command -v launchctl >/dev/null 2>&1; then
-    HAS_LAUNCHCTL=1
-fi
 if command -v systemctl >/dev/null 2>&1 && systemctl --user --version >/dev/null 2>&1; then
     HAS_SYSTEMD_USER=1
 fi
@@ -44,29 +38,19 @@ case "${1:-}" in
         fi
 
         if [ "$HAS_SYSTEMD_USER" -eq 1 ]; then
-            daemon_active="$(systemctl --user is-active auto-company.service 2>/dev/null || true)"
-            daemon_enabled="$(systemctl --user is-enabled auto-company.service 2>/dev/null || true)"
+            daemon_active="$(systemctl --user is-active "$SERVICE_NAME" 2>/dev/null || true)"
+            daemon_enabled="$(systemctl --user is-enabled "$SERVICE_NAME" 2>/dev/null || true)"
             if [ "$daemon_active" = "active" ]; then
-                echo "Daemon: ACTIVE (systemd --user auto-company.service)"
+                echo "Daemon: ACTIVE (systemd --user $SERVICE_NAME)"
             elif [ "$daemon_enabled" = "enabled" ]; then
-                echo "Daemon: ENABLED but $daemon_active (systemd --user auto-company.service)"
+                echo "Daemon: ENABLED but $daemon_active (systemd --user $SERVICE_NAME)"
             elif [ "$daemon_enabled" = "disabled" ] || [ "$daemon_enabled" = "masked" ]; then
-                echo "Daemon: $daemon_enabled (systemd --user auto-company.service)"
+                echo "Daemon: $daemon_enabled (systemd --user $SERVICE_NAME)"
             else
-                echo "Daemon: NOT INSTALLED (systemd --user auto-company.service)"
+                echo "Daemon: NOT INSTALLED (systemd --user $SERVICE_NAME)"
             fi
-        elif [ "$HAS_LAUNCHCTL" -eq 0 ]; then
-            if [ -f "$PAUSE_FLAG" ]; then
-                echo "Daemon: N/A (launchd is macOS-only; pause flag present)"
-            else
-                echo "Daemon: N/A (launchd is macOS-only)"
-            fi
-        elif [ -f "$PAUSE_FLAG" ]; then
-            echo "Daemon: PAUSED (.auto-loop-paused present)"
-        elif launchctl list 2>/dev/null | grep -q "$LABEL"; then
-            echo "Daemon: LOADED ($LABEL)"
         else
-            echo "Daemon: NOT LOADED"
+            echo "Daemon: N/A (systemd not available)"
         fi
 
         if [ -f "$STATE_FILE" ]; then
@@ -115,7 +99,7 @@ case "${1:-}" in
         if [ -f "$LOG_DIR/auto-loop.log" ]; then
             tail -f "$LOG_DIR/auto-loop.log"
         else
-            echo "No log file yet. Start the loop first: ./auto-loop.sh"
+            echo "No log file yet. Start the loop first: make start"
         fi
         ;;
 esac
