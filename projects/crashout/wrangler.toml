@@ -1,0 +1,5 @@
+# Cloudflare Pages config for the CRASHOUT static SPA.
+# With pages_build_output_dir set, `wrangler pages deploy` needs no path arg.
+# No compatibility_date / Pages Functions here — this is a pure static upload.
+name = "crashout"
+pages_build_output_dir = "dist"
