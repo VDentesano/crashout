@@ -11,10 +11,13 @@ import { createClient } from 'npm:@insforge/sdk';
 
 // ── inlined from eventRow.ts ────────────────────────────────────────────────
 const EVENT_NAMES = [
+  'visit',
   'session_start',
   'experiment_arm',
+  'play_start',
   'round_start',
   'cashout',
+  'play_cashout',
   'bust',
   'round_result',
   'match_result',
@@ -67,7 +70,7 @@ function buildEventRows(raw: unknown): BuildResult {
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 function json(status: number, body: Record<string, unknown>): Response {
@@ -79,6 +82,44 @@ function json(status: number, body: Record<string, unknown>): Response {
 
 export default async function (request: Request): Promise<Response> {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+
+  // GET ?action=stats — daily funnel: visits → plays → cashouts
+  if (request.method === 'GET') {
+    const url = new URL(request.url);
+    if (url.searchParams.get('action') !== 'stats') return json(400, { error: 'use ?action=stats' });
+    const env = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno?.env;
+    const baseUrl = env?.get('INSFORGE_BASE_URL');
+    const apiKey = env?.get('API_KEY');
+    if (!baseUrl || !apiKey) return json(500, { error: 'backend env not configured' });
+    const client = createClient({ baseUrl, anonKey: apiKey });
+    // Fetch last 14 days of funnel events, group client-side (no RPC needed).
+    const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await client.database
+      .from('events')
+      .select('name,session_id,created_at')
+      .in('name', ['visit', 'play_start', 'play_cashout'])
+      .gte('created_at', since)
+      .limit(50000);
+    if (error) return json(502, { error: 'query failed' });
+    // Aggregate: per calendar day (UTC), count unique sessions per event name.
+    const days: Record<string, Record<string, Set<string>>> = {};
+    for (const row of (data ?? []) as { name: string; session_id: string; created_at: string }[]) {
+      const day = row.created_at.slice(0, 10);
+      if (!days[day]) days[day] = {};
+      if (!days[day][row.name]) days[day][row.name] = new Set();
+      days[day][row.name].add(row.session_id);
+    }
+    const result = Object.entries(days)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([day, names]) => ({
+        day,
+        visits: names['visit']?.size ?? 0,
+        plays: names['play_start']?.size ?? 0,
+        cashouts: names['play_cashout']?.size ?? 0,
+      }));
+    return json(200, { ok: true, funnel: result });
+  }
+
   if (request.method !== 'POST') return json(405, { error: 'method not allowed' });
 
   let raw: unknown;

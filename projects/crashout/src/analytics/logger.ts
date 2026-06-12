@@ -38,10 +38,13 @@ const BUFFER_KEY = 'crashout.events.buffer';
 const EVENTS_URL = import.meta.env.VITE_INSFORGE_EVENTS_URL as string | undefined;
 
 export type EventName =
+  | 'visit'
   | 'session_start'
   | 'experiment_arm'
+  | 'play_start'
   | 'round_start'
   | 'cashout'
+  | 'play_cashout'
   | 'bust'
   | 'round_result'
   | 'match_result'
@@ -177,6 +180,24 @@ export function logRoundResult(outcome: RoundOutcome, props: Record<string, unkn
 
 export function logMatchResult(outcome: RoundOutcome, props: Record<string, unknown>): void {
   track('match_result', { outcome, ...props });
+}
+
+/**
+ * Fire once per page load. Captures referrer and utm_source for funnel attribution.
+ * Safe to call multiple times — only sends on the first call per session (guarded
+ * by the sessionId which is unique per page load).
+ */
+let visitFired = false;
+export function trackVisit(): void {
+  if (visitFired) return;
+  visitFired = true;
+  const params = new URLSearchParams(location.search);
+  track('visit', {
+    referrer: document.referrer || null,
+    utm_source: params.get('utm_source') || null,
+    utm_medium: params.get('utm_medium') || null,
+    utm_campaign: params.get('utm_campaign') || null,
+  });
 }
 
 export { playerId, sessionId, arm };

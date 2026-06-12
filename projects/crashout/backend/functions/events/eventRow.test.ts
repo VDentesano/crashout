@@ -41,6 +41,11 @@ if (res.ok) {
   check(`exactly the 6 table columns (${keys})`, keys === 'arm,name,player_id,props,session_id,ts');
 }
 
+console.log('\nbuildEventRows — funnel event names accepted:');
+check('accepts visit', buildEventRows({ ...wire, name: 'visit' }).ok === true);
+check('accepts play_start', buildEventRows({ ...wire, name: 'play_start' }).ok === true);
+check('accepts play_cashout', buildEventRows({ ...wire, name: 'play_cashout' }).ok === true);
+
 console.log('\nbuildEventRows — rejects malformed / hostile input:');
 check('rejects non-object', buildEventRows('nope').ok === false);
 check('rejects null', buildEventRows(null).ok === false);

@@ -269,6 +269,7 @@ export function useMatch() {
     const commits = await commitMatch(matchToken, playerId, CLIENT_SEED, ROUNDS_PER_MATCH);
     commitsRef.current = commits;
 
+    track('play_start', { matchToken });
     setState((s) => ({
       ...s,
       ghostName: run.name,
@@ -303,6 +304,7 @@ export function useMatch() {
     if (m >= proof.crashPoint) return; // crash beat the click
     playerCashedRef.current = m;
     track('cashout', { multiplier: m, matchRound: roundIndexRef.current + 1, nonce: proof.nonce });
+    track('play_cashout', { multiplier: m, matchRound: roundIndexRef.current + 1 });
     setState((s) => ({ ...s, playerCashed: m }));
   }, [state.phase]);
 

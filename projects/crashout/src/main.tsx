@@ -2,6 +2,10 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
+import { trackVisit } from './analytics/logger.ts';
+
+// Funnel step 1 — fire-and-forget, never blocks render.
+trackVisit();
 
 // One uncaught throw should not leave user #1 staring at a white tab. Catch it,
 // log it, and offer a reload — a duel is one render away from recoverable.

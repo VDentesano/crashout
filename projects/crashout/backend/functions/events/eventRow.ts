@@ -12,10 +12,13 @@
 // Must match logger.ts `EventName`. Duplicated deliberately: this is the trust
 // boundary for untrusted public input, not a shared-types convenience.
 export const EVENT_NAMES = [
+  'visit',
   'session_start',
   'experiment_arm',
+  'play_start',
   'round_start',
   'cashout',
+  'play_cashout',
   'bust',
   'round_result',
   'match_result',
