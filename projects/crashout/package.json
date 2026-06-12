@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node src/game/logic.test.ts && node src/audio/prefs.test.ts && node src/game/fairness.test.ts",
+    "test": "node src/game/logic.test.ts && node src/audio/prefs.test.ts && node src/game/fairness.test.ts && node src/game/economy.test.ts",
     "deploy": "pnpm test && pnpm build && wrangler pages deploy dist --branch main"
   },
   "dependencies": {

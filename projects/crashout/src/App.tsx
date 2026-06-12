@@ -18,6 +18,7 @@ import {
   applyMatchResult,
   BET_OPTIONS,
   type BetOption,
+  fetchAndReconcileBalance,
   getBalance,
   MIN_BET,
   rebuy,
@@ -52,10 +53,14 @@ export default function App() {
   const betRef = useRef(bet);
   const economyApplied = useRef(false);
   useEffect(() => { betRef.current = bet; }, [bet]);
+  // On mount: reconcile balance with server (server wins; localStorage is optimistic cache).
+  useEffect(() => {
+    fetchAndReconcileBalance(setBalance);
+  }, []);
   useEffect(() => {
     if (phase === 'matchEnd' && matchResult && !economyApplied.current) {
       economyApplied.current = true;
-      const { balance: newBal, delta } = applyMatchResult(betRef.current, matchResult.outcome);
+      const { balance: newBal, delta } = applyMatchResult(betRef.current, matchResult.outcome, setBalance);
       setBalance(newBal);
       setLastDelta(delta);
     }
@@ -371,7 +376,7 @@ export default function App() {
             RUN IT BACK ↻
           </button>
         ) : balance < MIN_BET ? (
-          <button className="primary rebuy" onClick={() => setBalance(rebuy())}>
+          <button className="primary rebuy" onClick={() => setBalance(rebuy(setBalance))}>
             REBUY · 1,000 COINS
           </button>
         ) : (
