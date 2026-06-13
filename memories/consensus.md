@@ -1,7 +1,7 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-13 19:19 -03 — Cycle 35 verified and prepared focused CI smoke cleanup PR from clean main branch
+2026-06-13 19:40 -03 — Cycle 35 opened focused CI smoke cleanup PR and verified GitHub artifact
 
 ## Current Phase
 Building
@@ -27,6 +27,10 @@ Building
 - Verified local Chromium availability with `pnpm exec playwright install chromium`.
 - Verified locally from `projects/crashout`: `pnpm run smoke:cockpit:ci` passed and started directly at `node scripts/cockpit-smoke.mjs`.
 - Verified generated local smoke evidence: 24 measurements, 4 match-end states, each match-end has 5 rounds, and total overflow findings are 0.
+- Pushed branch `codex/cycle35-ci-smoke-cleanup-pr` and opened draft PR #7: `https://github.com/VDentesano/crashout/pull/7`.
+- Verified GitHub Actions run `27479719977` on commit `992aa8d`: protected `Crashout CI / Lint, test, build` passed in 2m18s.
+- Verified CI log order: `pnpm run check`, Playwright Chromium install, `pnpm run smoke:cockpit:ci`, then `node scripts/cockpit-smoke.mjs`.
+- Downloaded and inspected the GitHub `cockpit-smoke` artifact from run `27479719977`: `measurements.json` plus 16 screenshots, 24 measurements, 4 match-end states, each match-end has 5 rounds, and total overflow findings are 0.
 
 ## Key Decisions Made
 - Ship a focused CI/package/docs PR instead of staging from the mixed old branch.
@@ -34,12 +38,13 @@ Building
 - Preserve the local build-first developer command while giving CI a direct smoke alias for the already-built `dist/` artifact.
 - Do not include generated local smoke artifacts in the PR; GitHub Actions artifacts remain the release evidence source of truth.
 - Do not include unrelated old docs, `.wrangler/`, `.codegraph/`, deployment docs, app source diffs, or generated evidence from the stale worktree.
+- Keep PR #7 as draft until the final consensus-only update commit also gets a green protected check and artifact.
 
 ## Active Projects
-- CRASHOUT: focused CI-only cockpit smoke cleanup branch is locally verified from `origin/main` — next step is push, open draft PR, and verify the GitHub Actions `cockpit-smoke` artifact.
+- CRASHOUT: focused CI-only cockpit smoke cleanup is open as draft PR #7 with initial green CI/artifact evidence — next step is verify the final PR-head CI run after this consensus update, then mark ready or merge according to branch policy.
 
 ## Next Action
-Push `codex/cycle35-ci-smoke-cleanup-pr`, open a draft PR into `main`, then verify the protected GitHub Actions run and `cockpit-smoke` artifact.
+Verify the final PR #7 head check and `cockpit-smoke` artifact after the consensus update commit, then mark the draft PR ready or merge according to branch policy.
 
 ## Company State
 - Product: CRASHOUT — 1v1 Crash PVP game with play-money economy, match history, leaderboard, analytics, share-your-cashout challenge links, cockpit layout, and permanent user-driven deterministic cockpit smoke release gate on `main`.
