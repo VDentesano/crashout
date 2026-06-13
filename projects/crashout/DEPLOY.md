@@ -59,6 +59,9 @@ production branch (`main` by default), and that `.github/workflows/crashout-ci.y
 exists at the repository root. It exits non-zero while any release blocker is
 still present.
 
+The GitHub `main` branch is protected with strict status checks and requires the
+`Lint, test, build` check from the `Crashout CI` workflow before merges.
+
 Before a production upload, also run the Chromium cockpit smoke locally when
 layout or interaction code changed. The script expects a Vite preview server and
 a Chromium instance with CDP enabled:
