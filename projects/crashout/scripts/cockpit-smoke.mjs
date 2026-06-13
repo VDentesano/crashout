@@ -109,6 +109,11 @@ async function capture(page, name) {
   }
 }
 
+async function resetScroll(page) {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(50);
+}
+
 async function load(page) {
   const url = new URL(baseUrl);
   url.searchParams.set('crashoutE2E', '1');
@@ -123,6 +128,7 @@ async function load(page) {
 }
 
 async function measure(page, name) {
+  await resetScroll(page);
   return page.evaluate((measurementName) => {
     const selectors = [
       '.app',
@@ -190,12 +196,8 @@ async function measure(page, name) {
 }
 
 async function click(page, selector) {
-  return page.evaluate((targetSelector) => {
-    const element = document.querySelector(targetSelector);
-    if (!element) return false;
-    element.click();
-    return true;
-  }, selector);
+  await page.locator(selector).click();
+  return true;
 }
 
 async function waitForPrimary(page, predicate, timeout = 5_000) {
@@ -211,13 +213,66 @@ async function waitForPrimary(page, predicate, timeout = 5_000) {
   return label;
 }
 
-async function completeMatch(page) {
-  const state = await page.evaluate(() => window.__CRASHOUT_E2E__?.completeMatch());
+async function getE2EState(page) {
+  return page.evaluate(() => window.__CRASHOUT_E2E__?.getState());
+}
 
-  if (state?.phase !== 'matchEnd' || !state.matchResult || state.rounds.length !== 5) {
-    throw new Error(`E2E hook did not complete a match: ${JSON.stringify(state)}`);
+async function waitForE2EState(page, predicate, description, timeout = 8_000) {
+  const started = Date.now();
+  let state = null;
+
+  while (Date.now() - started < timeout) {
+    state = await getE2EState(page);
+    if (state && predicate(state)) return state;
+    await page.waitForTimeout(100);
   }
 
+  throw new Error(`Timed out waiting for ${description}: ${JSON.stringify(state)}`);
+}
+
+async function cashOutAt(page, target) {
+  await waitForE2EState(
+    page,
+    (state) => state.phase === 'running' && state.multiplier >= target,
+    `running multiplier >= ${target}`,
+  );
+  await click(page, '.primary.cash');
+  await waitForPrimary(page, (text) => text.includes('LOCKED'), 1_500);
+}
+
+async function driveRound(page, target, isFinalRound) {
+  await waitForPrimary(page, (text) => text.includes('CASH OUT'), 5_000);
+  await cashOutAt(page, target);
+  const expectedNext = isFinalRound ? 'RUN IT BACK' : 'NEXT ROUND';
+  await waitForPrimary(page, (text) => text.includes(expectedNext), 8_000);
+}
+
+async function startUserDrivenMatch(page) {
+  const targets = await page.evaluate(() => window.__CRASHOUT_E2E__?.cashoutTargets() ?? []);
+  if (targets.length !== 5) {
+    throw new Error(`Expected five E2E cash-out targets, got ${JSON.stringify(targets)}`);
+  }
+
+  await click(page, '.primary.enter');
+  await waitForPrimary(page, (text) => text.includes('CASH OUT'), 5_000);
+  return targets;
+}
+
+async function finishUserDrivenMatch(page, targets, firstRoundAlreadyComplete = false) {
+  const startIndex = firstRoundAlreadyComplete ? 1 : 0;
+
+  for (let index = startIndex; index < targets.length; index += 1) {
+    if (index > 0) {
+      await click(page, '.primary.next');
+    }
+    await driveRound(page, targets[index], index === targets.length - 1);
+  }
+
+  const state = await waitForE2EState(
+    page,
+    (candidate) => candidate.phase === 'matchEnd' && candidate.matchResult && candidate.rounds.length === targets.length,
+    'deterministic user-driven match end',
+  );
   await page.waitForFunction(() => document.querySelector('.verdict.match') !== null);
   return state;
 }
@@ -283,27 +338,28 @@ try {
       results.push(await measure(page, `${name}-idle`));
       await capture(page, `${name}-idle`);
 
-      await click(page, '.nav-item[aria-label="History"]');
+      await click(page, '.nav-item[aria-label="Match history"]');
       await page.waitForTimeout(250);
       results.push(await measure(page, `${name}-history`));
+      await click(page, '.sheet-backdrop[aria-label="Close history"]');
 
       await click(page, '.nav-item[aria-label="Settings"]');
       await page.waitForTimeout(250);
       results.push(await measure(page, `${name}-settings`));
+      await click(page, '.sheet-backdrop[aria-label="Close settings"]');
 
       await click(page, '.nav-item[aria-label="Game"]');
       await page.waitForTimeout(250);
-      await click(page, '.primary');
+      const targets = await startUserDrivenMatch(page);
       await page.waitForTimeout(700);
       results.push(await measure(page, `${name}-running`));
       await capture(page, `${name}-running`);
 
-      await click(page, '.primary');
-      await waitForPrimary(page, (text) => !text.includes('LOCKED') && !text.includes('CASH OUT'), 5_000);
+      await driveRound(page, targets[0], false);
       results.push(await measure(page, `${name}-round-end`));
       await capture(page, `${name}-round-end`);
 
-      const completed = await completeMatch(page);
+      const completed = await finishUserDrivenMatch(page, targets, true);
       results.push({
         ...(await measure(page, `${name}-match-end`)),
         e2e: {
