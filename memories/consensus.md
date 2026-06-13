@@ -1,7 +1,7 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-13 01:07 -03 — Cycle 9 release publishing completed
+2026-06-13 01:10 -03 — Cycle 9 release publishing completed
 
 ## Current Phase
 Building
@@ -21,13 +21,16 @@ Building
 - Switched GitHub default branch for `VDentesano/crashout` from `master` to `main`.
 - Reran `pnpm release:ready`; all readiness checks passed.
 - Verified GitHub Actions run `27456072133` succeeded for commit `3a49294`.
+- Added `projects/crashout/DEPLOY.md` documentation for branch protection and verified GitHub Actions run `27456118764` succeeded for the protected-head documentation commit.
 - Enabled branch protection on `main` requiring the `Lint, test, build` status check with strict up-to-date checks.
+- Turned on admin enforcement for `main` branch protection so future direct pushes cannot bypass required checks.
 
 ## Key Decisions Made
 - Ship the release source directly on `main` because the remote repository was a bootstrap placeholder and Cloudflare Pages production already uses `main`.
 - Keep the outer `crash-crypto` worktree as the release source for now; defer any repository split until after the public source branch is protected.
 - Exclude local generated directories from the repo instead of publishing `.wrangler/` or `.codegraph/`.
 - Use the actual GitHub check context `Lint, test, build` for branch protection, not the workflow/job display compound name.
+- Enforce branch protection for admins after bootstrap publishing is complete.
 
 ## Active Projects
 - CRASHOUT: public source release published and protected at https://github.com/VDentesano/crashout — next step is clean up the remaining scratch `wireframe.html`, then decide whether to add a browser-test runner so cockpit smoke can become CI-owned instead of manual.
