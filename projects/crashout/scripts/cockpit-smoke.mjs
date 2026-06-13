@@ -1,6 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
+import https from 'node:https';
 import net from 'node:net';
 import path from 'node:path';
 import { dirname } from 'node:path';
@@ -41,7 +42,8 @@ function findFreePort() {
 
 function request(url) {
   return new Promise((resolve, reject) => {
-    const req = http.get(url, (res) => {
+    const client = url.startsWith('https:') ? https : http;
+    const req = client.get(url, (res) => {
       res.resume();
       res.on('end', () => resolve(res.statusCode ?? 0));
     });
