@@ -1,0 +1,59 @@
+name: Crashout Production Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Production or preview URL to smoke
+        required: true
+        default: https://crashout-euq.pages.dev/
+
+concurrency:
+  group: crashout-production-smoke
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  smoke:
+    name: Production cockpit smoke
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/crashout
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.5.1
+          cache: true
+          cache_dependency_path: projects/crashout/pnpm-lock.yaml
+          package_json_file: projects/crashout/package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run production smoke
+        env:
+          CRASHOUT_PRODUCTION_URL: ${{ inputs.base_url }}
+        run: pnpm run smoke:production
+
+      - name: Upload production smoke artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-smoke
+          path: docs/qa/production-smoke/
+          retention-days: 14

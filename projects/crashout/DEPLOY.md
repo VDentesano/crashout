@@ -64,18 +64,32 @@ checks, and the required `Lint, test, build` check from the `Crashout CI`
 workflow before merges.
 
 Before a production upload, also run the Chromium cockpit smoke locally when
-layout or interaction code changed. The script expects a Vite preview server and
-a Chromium instance with CDP enabled:
+layout or interaction code changed:
 
 ```bash
-pnpm preview --host 127.0.0.1 --port 5175
-chromium --remote-debugging-port=9222 --user-data-dir=/tmp/crashout-cdp --headless=new
-SMOKE_OUT_DIR=../../docs/qa/cockpit-smoke pnpm smoke:cockpit http://127.0.0.1:5175/
+pnpm run smoke:cockpit
 ```
 
-The cockpit smoke is intentionally not a CI requirement yet: it depends on an
-external browser process and creates screenshot artifacts. Promote it once the
-project adds a browser-test runner or a managed CI browser setup.
+The protected CI gate runs the same deterministic cockpit smoke against the
+freshly built `dist/` bundle and uploads the `cockpit-smoke` artifact.
+
+After a production upload, run the production smoke against the live Pages URL:
+
+```bash
+pnpm run smoke:production
+```
+
+By default this targets `https://crashout-euq.pages.dev/` and writes
+`docs/qa/production-smoke/`. Override with either:
+
+```bash
+CRASHOUT_PRODUCTION_URL=https://example.pages.dev/ pnpm run smoke:production
+pnpm run smoke:production https://example.pages.dev/
+```
+
+GitHub Actions also includes a manual `Crashout Production Smoke` workflow. Run
+it after direct Cloudflare Pages uploads to preserve production screenshots and
+measurements as downloadable `production-smoke` artifacts.
 
 ## Wiring the backend (after deploy)
 
