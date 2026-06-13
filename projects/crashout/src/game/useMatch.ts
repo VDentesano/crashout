@@ -51,9 +51,40 @@ declare global {
     __CRASHOUT_E2E__?: {
       version: 1;
       getState: () => E2EState;
-      completeMatch: () => E2EState;
+      cashoutTargets: () => number[];
     };
   }
+}
+
+const E2E_ROUNDS: Array<{
+  crashPoint: number;
+  playerTarget: number;
+  ghostIntent: number | null;
+}> = [
+  { crashPoint: 1.36, playerTarget: 1.08, ghostIntent: 1.16 },
+  { crashPoint: 1.44, playerTarget: 1.22, ghostIntent: 1.12 },
+  { crashPoint: 1.52, playerTarget: 1.18, ghostIntent: 1.3 },
+  { crashPoint: 1.62, playerTarget: 1.4, ghostIntent: null },
+  { crashPoint: 1.7, playerTarget: 1.36, ghostIntent: 1.26 },
+];
+
+function e2eProofForRound(index: number): FairProof {
+  const round = E2E_ROUNDS[index];
+  return {
+    serverSeed: `e2e-seed-${index + 1}`,
+    serverSeedHash: `e2e-hash-${index + 1}`,
+    clientSeed: CLIENT_SEED,
+    nonce: 90_000 + index,
+    crashPoint: round.crashPoint,
+  };
+}
+
+function e2eGhostRun(): GhostRun {
+  return {
+    id: 'e2e',
+    name: 'e2e_ghost',
+    intents: E2E_ROUNDS.map((round) => round.ghostIntent),
+  };
 }
 
 function e2eHooksEnabled(): boolean {
@@ -242,7 +273,10 @@ export function useMatch() {
     const commits = commitsRef.current;
 
     let proof: FairProof;
-    if (commits && commits[index]) {
+    if (e2eHooksEnabled()) {
+      proof = e2eProofForRound(index);
+      nonceRef.current = proof.nonce;
+    } else if (commits && commits[index]) {
       // Server-committed round: we have the hash (commitment) + crashPoint (to
       // animate the curve), but NOT the seed — it's revealed at match end.
       const c = commits[index];
@@ -284,7 +318,8 @@ export function useMatch() {
   }, []);
 
   const enterMatch = useCallback(async () => {
-    const run = pickGhostRun();
+    const isE2E = e2eHooksEnabled();
+    const run = isE2E ? e2eGhostRun() : pickGhostRun();
     runRef.current = run;
     roundsRef.current = [];
 
@@ -292,7 +327,7 @@ export function useMatch() {
     // failure we fall back to local RNG and the FAIR chip reads "DEMO RNG".
     const matchToken = crypto.randomUUID();
     matchTokenRef.current = matchToken;
-    const commits = await commitMatch(matchToken, playerId, CLIENT_SEED, ROUNDS_PER_MATCH);
+    const commits = isE2E ? null : await commitMatch(matchToken, playerId, CLIENT_SEED, ROUNDS_PER_MATCH);
     commitsRef.current = commits;
 
     track('play_start', { matchToken });
@@ -348,75 +383,7 @@ export function useMatch() {
     window.__CRASHOUT_E2E__ = {
       version: 1,
       getState,
-      completeMatch: () => {
-        const ghostName = 'e2e_ghost';
-        const scripted = [
-          { crashPoint: 2.4, player: 1.8, ghost: 1.35 },
-          { crashPoint: 1.7, player: 1.42, ghost: null },
-          { crashPoint: 3.1, player: 2.05, ghost: 2.4 },
-          { crashPoint: 1.22, player: null, ghost: 1.14 },
-          { crashPoint: 2.8, player: 2.2, ghost: 1.9 },
-        ] as const;
-        const rounds: RoundRecord[] = scripted.map((round, index) => ({
-          index,
-          crashPoint: round.crashPoint,
-          player: { multiplier: round.player },
-          ghost: { multiplier: round.ghost },
-          proof: {
-            serverSeed: `e2e-seed-${index + 1}`,
-            serverSeedHash: `e2e-hash-${index + 1}`,
-            clientSeed: CLIENT_SEED,
-            nonce: 90_000 + index,
-            crashPoint: round.crashPoint,
-          },
-        }));
-        const playerScore = scoreMatch(rounds.map((r) => roundScore(r.player)), arm);
-        const ghostScore = scoreMatch(rounds.map((r) => roundScore(r.ghost)), arm);
-        const matchResult: MatchResult = {
-          outcome: decideMatch(playerScore, ghostScore),
-          arm,
-          playerScore,
-          ghostScore,
-          ghostName,
-          rounds,
-        };
-        const lastRound = rounds[rounds.length - 1];
-        const roundResult: RoundResult = {
-          outcome: decideOutcome(lastRound.player, lastRound.ghost),
-          player: lastRound.player,
-          ghost: lastRound.ghost,
-          ghostName,
-          crashPoint: lastRound.crashPoint,
-          proof: lastRound.proof,
-        };
-        const nextState: MatchState = {
-          ...stateRef.current,
-          phase: 'matchEnd',
-          roundIndex: ROUNDS_PER_MATCH - 1,
-          multiplier: lastRound.crashPoint,
-          ghostName,
-          ghostCashed: lastRound.ghost.multiplier,
-          playerCashed: lastRound.player.multiplier,
-          rounds,
-          roundResult,
-          matchResult,
-          proof: lastRound.proof,
-          nonce: lastRound.proof.nonce,
-          fairMode: 'local',
-          fairVerified: true,
-        };
-
-        roundsRef.current = rounds;
-        roundIndexRef.current = ROUNDS_PER_MATCH - 1;
-        playerCashedRef.current = lastRound.player.multiplier;
-        resolvedRef.current = true;
-        nonceRef.current = lastRound.proof.nonce;
-        phaseRef.current = nextState.phase;
-        matchResultRef.current = matchResult;
-        stateRef.current = nextState;
-        setState(nextState);
-        return getState();
-      },
+      cashoutTargets: () => E2E_ROUNDS.map((round) => round.playerTarget),
     };
 
     return () => {
