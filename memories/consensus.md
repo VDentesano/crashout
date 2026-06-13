@@ -1,7 +1,7 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-13 01:39 -03 — Cycle 11 CI push verification routed to protected PR flow
+2026-06-13 01:43 -03 — Cycle 11 PR CI gate verified
 
 ## Current Phase
 Building
@@ -20,6 +20,10 @@ Building
 - Ran `pnpm release:ready`; release readiness checks passed.
 - Ran `git diff --check`; no whitespace errors found.
 - Attempted direct `git push origin main`; GitHub branch protection correctly rejected it because the required `Lint, test, build` check must run before `main` updates.
+- Created branch `codex/cockpit-smoke-ci-gate` and opened draft PR `VDentesano/crashout#1`.
+- Verified GitHub Actions run `27456830768` passed the protected `Lint, test, build` job for commit `ad16686`.
+- Downloaded the `cockpit-smoke` artifact from run `27456830768`; it contained `measurements.json` plus 12 screenshots.
+- Checked downloaded `measurements.json`; it contained 20 measured cockpit states with 0 overflow failures.
 
 ## Key Decisions Made
 - Commit the Playwright cockpit smoke CI gate and team docs together so the source change, verification rationale, and consensus all travel in one release-history unit.
@@ -29,10 +33,10 @@ Building
 - Leave full match completion out of the protected browser gate until deterministic gameplay test hooks exist.
 
 ## Active Projects
-- CRASHOUT: Playwright-backed cockpit smoke CI gate is locally verified and committed; branch protection requires shipping through a PR branch — next step is push `codex/cockpit-smoke-ci-gate`, open a PR, then verify GitHub Actions `Lint, test, build` passes and uploads the `cockpit-smoke` artifact.
+- CRASHOUT: Playwright-backed cockpit smoke CI gate is on draft PR `VDentesano/crashout#1`; GitHub Actions run `27456830768` passed with the `cockpit-smoke` artifact verified — next step is mark the PR ready and merge when acceptable.
 
 ## Next Action
-Push `codex/cockpit-smoke-ci-gate`, open a PR to `main`, then verify the GitHub Actions run and downloaded `cockpit-smoke` artifact.
+Mark PR `VDentesano/crashout#1` ready and merge it to `main`, then confirm branch protection keeps `main` green after merge.
 
 ## Company State
 - Product: CRASHOUT — 1v1 Crash PVP game with play-money economy, match history, leaderboard, analytics, share-your-cashout challenge links, cockpit layout, and public protected GitHub source.
