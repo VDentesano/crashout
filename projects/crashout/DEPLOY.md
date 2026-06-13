@@ -91,6 +91,28 @@ GitHub Actions also includes a manual `Crashout Production Smoke` workflow. Run
 it after direct Cloudflare Pages uploads to preserve production screenshots and
 measurements as downloadable `production-smoke` artifacts.
 
+## Backend persistence smoke
+
+After backend function or persistence-path changes, run the INSFORGE smoke:
+
+```bash
+pnpm run smoke:insforge
+```
+
+By default this targets `https://2zzc6u78.functions.insforge.app/events`, derives
+the sibling `/rounds` endpoint, creates a synthetic `smoke-*` player and match,
+then checks server commit/reveal persistence. It verifies committed rows are
+written with hidden seeds, then read back with matching revealed seed hashes.
+Override the endpoint with either:
+
+```bash
+INSFORGE_EVENTS_URL=https://<project>.functions.insforge.app/events pnpm run smoke:insforge
+pnpm run smoke:insforge https://<project>.functions.insforge.app/events
+```
+
+Local evidence is written to `docs/qa/insforge-persistence-smoke/`; keep the
+durable release evidence in the terminal output or CI artifacts.
+
 ## Wiring the backend (after deploy)
 
 The game runs fully client-side and logs to `localStorage` with **no** backend.

@@ -14,6 +14,7 @@
     "smoke:cockpit": "pnpm build && pnpm run smoke:cockpit:ci",
     "smoke:cockpit:ci": "node scripts/cockpit-smoke.mjs",
     "smoke:production": "node scripts/production-smoke.mjs",
+    "smoke:insforge": "node scripts/insforge-persistence-smoke.mjs",
     "test": "node src/game/logic.test.ts && node src/audio/prefs.test.ts && node src/game/fairness.test.ts && node src/game/economy.test.ts && node src/game/history.test.ts && node src/game/leaderboard.test.ts",
     "deploy": "pnpm run check && wrangler pages deploy dist --branch main"
   },
