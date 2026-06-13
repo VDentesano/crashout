@@ -44,6 +44,27 @@ interface MatchState {
   fairVerified: boolean | null; // null = not yet revealed; set after match end
 }
 
+type E2EState = Pick<MatchState, 'phase' | 'roundIndex' | 'multiplier' | 'ghostName' | 'rounds' | 'matchResult'>;
+
+declare global {
+  interface Window {
+    __CRASHOUT_E2E__?: {
+      version: 1;
+      getState: () => E2EState;
+      completeMatch: () => E2EState;
+    };
+  }
+}
+
+function e2eHooksEnabled(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get('crashoutE2E') === '1'
+      || localStorage.getItem('crashout.e2e') === '1';
+  } catch {
+    return false;
+  }
+}
+
 export function useMatch() {
   const [state, setState] = useState<MatchState>({
     phase: 'idle',
@@ -72,6 +93,7 @@ export function useMatch() {
   const nonceRef = useRef(0);
   const phaseRef = useRef<MatchPhase>('idle');
   const matchResultRef = useRef<MatchResult | null>(null);
+  const stateRef = useRef(state);
   // Server-committed rounds for the current match (null = local-RNG fallback).
   const commitsRef = useRef<CommitRound[] | null>(null);
   const matchTokenRef = useRef<string | null>(null);
@@ -81,6 +103,10 @@ export function useMatch() {
     phaseRef.current = state.phase;
     matchResultRef.current = state.matchResult;
   }, [state.phase, state.matchResult]);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     track('session_start');
@@ -307,6 +333,96 @@ export function useMatch() {
     track('play_cashout', { multiplier: m, matchRound: roundIndexRef.current + 1 });
     setState((s) => ({ ...s, playerCashed: m }));
   }, [state.phase]);
+
+  useEffect(() => {
+    if (!e2eHooksEnabled()) {
+      delete window.__CRASHOUT_E2E__;
+      return;
+    }
+
+    const getState = () => {
+      const { phase, roundIndex, multiplier, ghostName, rounds, matchResult } = stateRef.current;
+      return { phase, roundIndex, multiplier, ghostName, rounds, matchResult };
+    };
+
+    window.__CRASHOUT_E2E__ = {
+      version: 1,
+      getState,
+      completeMatch: () => {
+        const ghostName = 'e2e_ghost';
+        const scripted = [
+          { crashPoint: 2.4, player: 1.8, ghost: 1.35 },
+          { crashPoint: 1.7, player: 1.42, ghost: null },
+          { crashPoint: 3.1, player: 2.05, ghost: 2.4 },
+          { crashPoint: 1.22, player: null, ghost: 1.14 },
+          { crashPoint: 2.8, player: 2.2, ghost: 1.9 },
+        ] as const;
+        const rounds: RoundRecord[] = scripted.map((round, index) => ({
+          index,
+          crashPoint: round.crashPoint,
+          player: { multiplier: round.player },
+          ghost: { multiplier: round.ghost },
+          proof: {
+            serverSeed: `e2e-seed-${index + 1}`,
+            serverSeedHash: `e2e-hash-${index + 1}`,
+            clientSeed: CLIENT_SEED,
+            nonce: 90_000 + index,
+            crashPoint: round.crashPoint,
+          },
+        }));
+        const playerScore = scoreMatch(rounds.map((r) => roundScore(r.player)), arm);
+        const ghostScore = scoreMatch(rounds.map((r) => roundScore(r.ghost)), arm);
+        const matchResult: MatchResult = {
+          outcome: decideMatch(playerScore, ghostScore),
+          arm,
+          playerScore,
+          ghostScore,
+          ghostName,
+          rounds,
+        };
+        const lastRound = rounds[rounds.length - 1];
+        const roundResult: RoundResult = {
+          outcome: decideOutcome(lastRound.player, lastRound.ghost),
+          player: lastRound.player,
+          ghost: lastRound.ghost,
+          ghostName,
+          crashPoint: lastRound.crashPoint,
+          proof: lastRound.proof,
+        };
+        const nextState: MatchState = {
+          ...stateRef.current,
+          phase: 'matchEnd',
+          roundIndex: ROUNDS_PER_MATCH - 1,
+          multiplier: lastRound.crashPoint,
+          ghostName,
+          ghostCashed: lastRound.ghost.multiplier,
+          playerCashed: lastRound.player.multiplier,
+          rounds,
+          roundResult,
+          matchResult,
+          proof: lastRound.proof,
+          nonce: lastRound.proof.nonce,
+          fairMode: 'local',
+          fairVerified: true,
+        };
+
+        roundsRef.current = rounds;
+        roundIndexRef.current = ROUNDS_PER_MATCH - 1;
+        playerCashedRef.current = lastRound.player.multiplier;
+        resolvedRef.current = true;
+        nonceRef.current = lastRound.proof.nonce;
+        phaseRef.current = nextState.phase;
+        matchResultRef.current = matchResult;
+        stateRef.current = nextState;
+        setState(nextState);
+        return getState();
+      },
+    };
+
+    return () => {
+      delete window.__CRASHOUT_E2E__;
+    };
+  }, []);
 
   return { state, advance, cashOut };
 }

@@ -110,11 +110,15 @@ async function capture(page, name) {
 }
 
 async function load(page) {
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  const url = new URL(baseUrl);
+  url.searchParams.set('crashoutE2E', '1');
+
+  await page.goto(url.href, { waitUntil: 'networkidle' });
   await page.evaluate(() => {
     localStorage.setItem('crashout_onboarded_v1', '1');
   });
   await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => window.__CRASHOUT_E2E__?.version === 1);
   await page.waitForTimeout(350);
 }
 
@@ -207,17 +211,38 @@ async function waitForPrimary(page, predicate, timeout = 5_000) {
   return label;
 }
 
+async function completeMatch(page) {
+  const state = await page.evaluate(() => window.__CRASHOUT_E2E__?.completeMatch());
+
+  if (state?.phase !== 'matchEnd' || !state.matchResult || state.rounds.length !== 5) {
+    throw new Error(`E2E hook did not complete a match: ${JSON.stringify(state)}`);
+  }
+
+  await page.waitForFunction(() => document.querySelector('.verdict.match') !== null);
+  return state;
+}
+
 function assertSmoke(results) {
   const overflowFailures = results.filter((result) => result.overflow?.length);
+  const matchEnds = results.filter((result) => result.name.endsWith('-match-end'));
+  const matchEndFailures = matchEnds.filter((result) => {
+    return result.phase !== 'RUN IT BACK ↻'
+      || result.e2e?.rounds !== 5
+      || !result.e2e?.outcome
+      || typeof result.e2e?.playerScore !== 'number'
+      || typeof result.e2e?.ghostScore !== 'number';
+  });
   const missingCore = results.filter((result) => {
     if (!result.name.endsWith('-idle')) return false;
     return !result.rects['.app'] || !result.rects['.arena'] || !result.rects['.round-console'];
   });
 
-  if (overflowFailures.length || missingCore.length) {
+  if (overflowFailures.length || missingCore.length || matchEnds.length !== viewports.length || matchEndFailures.length) {
     const summary = {
       overflowFailures: overflowFailures.map(({ name, overflow }) => ({ name, overflow })),
       missingCore: missingCore.map(({ name, rects }) => ({ name, rects })),
+      matchEndCount: matchEnds.length,
+      matchEndFailures: matchEndFailures.map(({ name, phase, e2e }) => ({ name, phase, e2e })),
     };
     throw new Error(`Cockpit smoke failed:\n${JSON.stringify(summary, null, 2)}`);
   }
@@ -277,6 +302,18 @@ try {
       await waitForPrimary(page, (text) => !text.includes('LOCKED') && !text.includes('CASH OUT'), 5_000);
       results.push(await measure(page, `${name}-round-end`));
       await capture(page, `${name}-round-end`);
+
+      const completed = await completeMatch(page);
+      results.push({
+        ...(await measure(page, `${name}-match-end`)),
+        e2e: {
+          outcome: completed.matchResult.outcome,
+          rounds: completed.rounds.length,
+          playerScore: completed.matchResult.playerScore,
+          ghostScore: completed.matchResult.ghostScore,
+        },
+      });
+      await capture(page, `${name}-match-end`);
 
       await context.close();
     }
