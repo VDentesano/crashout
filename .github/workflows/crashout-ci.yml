@@ -19,6 +19,9 @@ concurrency:
   group: crashout-ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   check:
     name: Lint, test, build
@@ -28,7 +31,7 @@ jobs:
         working-directory: projects/crashout
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -39,9 +42,9 @@ jobs:
           package_json_file: projects/crashout/package.json
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: "24"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -57,7 +60,7 @@ jobs:
 
       - name: Upload cockpit smoke artifacts
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cockpit-smoke
           path: docs/qa/cockpit-smoke/
