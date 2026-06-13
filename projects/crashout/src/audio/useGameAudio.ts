@@ -22,9 +22,12 @@ interface AudioState {
 export function useGameAudio(state: AudioState) {
   const [muted, setMuted] = useState(audio.muted);
   const multRef = useRef(state.multiplier);
-  multRef.current = state.multiplier;
   const prevPhase = useRef(state.phase);
   const prevCashed = useRef(state.playerCashed);
+
+  useEffect(() => {
+    multRef.current = state.multiplier;
+  }, [state.multiplier]);
 
   // Rising tick — runs only while a round is in the air. Cleared on leaving
   // 'running' and on unmount so no tick leaks past the round.

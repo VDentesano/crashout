@@ -1,0 +1,1670 @@
+[
+  {
+    "name": "desktop-idle",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "documentHeight": 900,
+    "bodyHeight": 900,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 900,
+        "left": 110,
+        "right": 1330,
+        "width": 1220,
+        "height": 900
+      },
+      ".app-header": {
+        "top": 32,
+        "bottom": 69,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 350,
+        "bottom": 572,
+        "left": 146,
+        "right": 210,
+        "width": 64,
+        "height": 222
+      },
+      ".game-aside": {
+        "top": 85,
+        "bottom": 837,
+        "left": 236,
+        "right": 484,
+        "width": 248,
+        "height": 752
+      },
+      ".arena": {
+        "top": 85,
+        "bottom": 635,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 550
+      },
+      ".round-console": {
+        "top": 651,
+        "bottom": 837,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 186
+      },
+      ".app-footer": {
+        "top": 853,
+        "bottom": 868,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "desktop-history",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "documentHeight": 900,
+    "bodyHeight": 900,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 900,
+        "left": 110,
+        "right": 1330,
+        "width": 1220,
+        "height": 900
+      },
+      ".app-header": {
+        "top": 32,
+        "bottom": 69,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 350,
+        "bottom": 572,
+        "left": 146,
+        "right": 210,
+        "width": 64,
+        "height": 222
+      },
+      ".game-aside": {
+        "top": 85,
+        "bottom": 837,
+        "left": 236,
+        "right": 484,
+        "width": 248,
+        "height": 752
+      },
+      ".arena": {
+        "top": 85,
+        "bottom": 635,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 550
+      },
+      ".round-console": {
+        "top": 651,
+        "bottom": 837,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 186
+      },
+      ".app-footer": {
+        "top": 853,
+        "bottom": 868,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "desktop-settings",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "documentHeight": 900,
+    "bodyHeight": 900,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 900,
+        "left": 110,
+        "right": 1330,
+        "width": 1220,
+        "height": 900
+      },
+      ".app-header": {
+        "top": 32,
+        "bottom": 69,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 350,
+        "bottom": 572,
+        "left": 146,
+        "right": 210,
+        "width": 64,
+        "height": 222
+      },
+      ".game-aside": {
+        "top": 85,
+        "bottom": 837,
+        "left": 236,
+        "right": 484,
+        "width": 248,
+        "height": 752
+      },
+      ".arena": {
+        "top": 85,
+        "bottom": 635,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 550
+      },
+      ".round-console": {
+        "top": 651,
+        "bottom": 837,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 186
+      },
+      ".app-footer": {
+        "top": 853,
+        "bottom": 868,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 15
+      },
+      ".sheet": {
+        "top": 74,
+        "bottom": 232,
+        "left": 1114,
+        "right": 1298,
+        "width": 184,
+        "height": 158
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "desktop-running",
+    "phase": "CASH OUT  1.01×",
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "documentHeight": 900,
+    "bodyHeight": 900,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 900,
+        "left": 110,
+        "right": 1330,
+        "width": 1220,
+        "height": 900
+      },
+      ".app-header": {
+        "top": 32,
+        "bottom": 69,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 350,
+        "bottom": 572,
+        "left": 146,
+        "right": 210,
+        "width": 64,
+        "height": 222
+      },
+      ".game-aside": {
+        "top": 85,
+        "bottom": 837,
+        "left": 236,
+        "right": 484,
+        "width": 248,
+        "height": 752
+      },
+      ".arena": {
+        "top": 85,
+        "bottom": 704,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 619
+      },
+      ".round-console": {
+        "top": 720,
+        "bottom": 837,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 117
+      },
+      ".app-footer": {
+        "top": 853,
+        "bottom": 868,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "desktop-round-end",
+    "phase": "NEXT ROUND ↑",
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "documentHeight": 900,
+    "bodyHeight": 900,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 900,
+        "left": 110,
+        "right": 1330,
+        "width": 1220,
+        "height": 900
+      },
+      ".app-header": {
+        "top": 32,
+        "bottom": 69,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 350,
+        "bottom": 572,
+        "left": 146,
+        "right": 210,
+        "width": 64,
+        "height": 222
+      },
+      ".game-aside": {
+        "top": 85,
+        "bottom": 837,
+        "left": 236,
+        "right": 484,
+        "width": 248,
+        "height": 752
+      },
+      ".arena": {
+        "top": 85,
+        "bottom": 702,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 617
+      },
+      ".round-console": {
+        "top": 718,
+        "bottom": 837,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 119
+      },
+      ".app-footer": {
+        "top": 853,
+        "bottom": 868,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "desktop-match-end",
+    "phase": "RUN IT BACK ↻",
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "documentHeight": 900,
+    "bodyHeight": 900,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 900,
+        "left": 110,
+        "right": 1330,
+        "width": 1220,
+        "height": 900
+      },
+      ".app-header": {
+        "top": 32,
+        "bottom": 69,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 350,
+        "bottom": 572,
+        "left": 146,
+        "right": 210,
+        "width": 64,
+        "height": 222
+      },
+      ".game-aside": {
+        "top": 85,
+        "bottom": 837,
+        "left": 236,
+        "right": 484,
+        "width": 248,
+        "height": 752
+      },
+      ".arena": {
+        "top": 85,
+        "bottom": 704,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 619
+      },
+      ".round-console": {
+        "top": 720,
+        "bottom": 837,
+        "left": 506,
+        "right": 1298,
+        "width": 792,
+        "height": 117
+      },
+      ".app-footer": {
+        "top": 853,
+        "bottom": 868,
+        "left": 142,
+        "right": 1298,
+        "width": 1156,
+        "height": 15
+      }
+    },
+    "overflow": [],
+    "matchVerdict": "YOU WIN"
+  },
+  {
+    "name": "tablet-idle",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "documentHeight": 1180,
+    "bodyHeight": 950,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 950,
+        "left": 50,
+        "right": 770,
+        "width": 720,
+        "height": 950
+      },
+      ".app-header": {
+        "top": 22,
+        "bottom": 59,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 71,
+        "bottom": 133,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 596,
+        "bottom": 901,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 305
+      },
+      ".arena": {
+        "top": 145,
+        "bottom": 386,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 241
+      },
+      ".round-console": {
+        "top": 398,
+        "bottom": 584,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 186
+      },
+      ".app-footer": {
+        "top": 913,
+        "bottom": 928,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "tablet-history",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "documentHeight": 1180,
+    "bodyHeight": 950,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 950,
+        "left": 50,
+        "right": 770,
+        "width": 720,
+        "height": 950
+      },
+      ".app-header": {
+        "top": 22,
+        "bottom": 59,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 71,
+        "bottom": 133,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 596,
+        "bottom": 901,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 305
+      },
+      ".arena": {
+        "top": 145,
+        "bottom": 386,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 241
+      },
+      ".round-console": {
+        "top": 398,
+        "bottom": 584,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 186
+      },
+      ".app-footer": {
+        "top": 913,
+        "bottom": 928,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "tablet-settings",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "documentHeight": 1180,
+    "bodyHeight": 950,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 950,
+        "left": 50,
+        "right": 770,
+        "width": 720,
+        "height": 950
+      },
+      ".app-header": {
+        "top": 22,
+        "bottom": 59,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 71,
+        "bottom": 133,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 596,
+        "bottom": 901,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 305
+      },
+      ".arena": {
+        "top": 145,
+        "bottom": 386,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 241
+      },
+      ".round-console": {
+        "top": 398,
+        "bottom": 584,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 186
+      },
+      ".app-footer": {
+        "top": 913,
+        "bottom": 928,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 15
+      },
+      ".sheet": {
+        "top": 64,
+        "bottom": 222,
+        "left": 564,
+        "right": 748,
+        "width": 184,
+        "height": 158
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "tablet-running",
+    "phase": "CASH OUT  1.03×",
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "documentHeight": 1180,
+    "bodyHeight": 881,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 881,
+        "left": 50,
+        "right": 770,
+        "width": 720,
+        "height": 881
+      },
+      ".app-header": {
+        "top": 22,
+        "bottom": 59,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 71,
+        "bottom": 133,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 527,
+        "bottom": 832,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 305
+      },
+      ".arena": {
+        "top": 145,
+        "bottom": 386,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 241
+      },
+      ".round-console": {
+        "top": 398,
+        "bottom": 515,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 117
+      },
+      ".app-footer": {
+        "top": 844,
+        "bottom": 859,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "tablet-round-end",
+    "phase": "LOCKED 1.08×",
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "documentHeight": 1180,
+    "bodyHeight": 881,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 881,
+        "left": 50,
+        "right": 770,
+        "width": 720,
+        "height": 881
+      },
+      ".app-header": {
+        "top": 22,
+        "bottom": 59,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 71,
+        "bottom": 133,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 527,
+        "bottom": 832,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 305
+      },
+      ".arena": {
+        "top": 145,
+        "bottom": 386,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 241
+      },
+      ".round-console": {
+        "top": 398,
+        "bottom": 515,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 117
+      },
+      ".app-footer": {
+        "top": 844,
+        "bottom": 859,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 15
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "tablet-match-end",
+    "phase": "NEXT ROUND ↑",
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "documentHeight": 1180,
+    "bodyHeight": 979,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 979,
+        "left": 50,
+        "right": 770,
+        "width": 720,
+        "height": 979
+      },
+      ".app-header": {
+        "top": 22,
+        "bottom": 59,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 37
+      },
+      ".nav-island": {
+        "top": 71,
+        "bottom": 133,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 625,
+        "bottom": 930,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 305
+      },
+      ".arena": {
+        "top": 145,
+        "bottom": 482,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 337
+      },
+      ".round-console": {
+        "top": 494,
+        "bottom": 613,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 119
+      },
+      ".app-footer": {
+        "top": 942,
+        "bottom": 957,
+        "left": 72,
+        "right": 748,
+        "width": 676,
+        "height": 15
+      }
+    },
+    "overflow": [],
+    "matchVerdict": null
+  },
+  {
+    "name": "mobile-idle",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "documentHeight": 844,
+    "bodyHeight": 739,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 739,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 739
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 588,
+        "bottom": 687,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 579,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 220
+      },
+      ".app-footer": {
+        "top": 696,
+        "bottom": 727,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "mobile-history",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "documentHeight": 844,
+    "bodyHeight": 739,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 739,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 739
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 588,
+        "bottom": 687,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 579,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 220
+      },
+      ".app-footer": {
+        "top": 696,
+        "bottom": 727,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "mobile-settings",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "documentHeight": 844,
+    "bodyHeight": 739,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 739,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 739
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 588,
+        "bottom": 687,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 579,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 220
+      },
+      ".app-footer": {
+        "top": 696,
+        "bottom": 727,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      },
+      ".sheet": {
+        "top": 83,
+        "bottom": 241,
+        "left": 194,
+        "right": 378,
+        "width": 184,
+        "height": 158
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "mobile-running",
+    "phase": "CASH OUT  1.01×",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "documentHeight": 844,
+    "bodyHeight": 684,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 684,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 684
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 533,
+        "bottom": 632,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 524,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 165
+      },
+      ".app-footer": {
+        "top": 641,
+        "bottom": 672,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "mobile-round-end",
+    "phase": "LOCKED 1.04×",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "documentHeight": 844,
+    "bodyHeight": 684,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 684,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 684
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 533,
+        "bottom": 632,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 524,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 165
+      },
+      ".app-footer": {
+        "top": 641,
+        "bottom": 672,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "mobile-match-end",
+    "phase": "RUN IT BACK ↻",
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "documentHeight": 844,
+    "bodyHeight": 808,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 808,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 808
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 657,
+        "bottom": 756,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 487,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 332
+      },
+      ".round-console": {
+        "top": 496,
+        "bottom": 648,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 152
+      },
+      ".app-footer": {
+        "top": 765,
+        "bottom": 796,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": [],
+    "matchVerdict": "YOU WIN"
+  },
+  {
+    "name": "short-mobile-idle",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 390,
+    "innerHeight": 640,
+    "documentHeight": 739,
+    "bodyHeight": 739,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 739,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 739
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 588,
+        "bottom": 687,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 579,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 220
+      },
+      ".app-footer": {
+        "top": 696,
+        "bottom": 727,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "short-mobile-history",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 390,
+    "innerHeight": 640,
+    "documentHeight": 739,
+    "bodyHeight": 739,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 739,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 739
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 588,
+        "bottom": 687,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 579,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 220
+      },
+      ".app-footer": {
+        "top": 696,
+        "bottom": 727,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "short-mobile-settings",
+    "phase": "ENTER DUEL · 100",
+    "innerWidth": 390,
+    "innerHeight": 640,
+    "documentHeight": 739,
+    "bodyHeight": 739,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 739,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 739
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 588,
+        "bottom": 687,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 350,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 195
+      },
+      ".round-console": {
+        "top": 359,
+        "bottom": 579,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 220
+      },
+      ".app-footer": {
+        "top": 696,
+        "bottom": 727,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      },
+      ".sheet": {
+        "top": 83,
+        "bottom": 241,
+        "left": 194,
+        "right": 378,
+        "width": 184,
+        "height": 158
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "short-mobile-running",
+    "phase": "NEXT ROUND ↑",
+    "innerWidth": 390,
+    "innerHeight": 640,
+    "documentHeight": 747,
+    "bodyHeight": 747,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 1,
+        "bottom": 747,
+        "left": -1,
+        "right": 389,
+        "width": 390,
+        "height": 746
+      },
+      ".app-header": {
+        "top": 13,
+        "bottom": 76,
+        "left": 11,
+        "right": 377,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 85,
+        "bottom": 147,
+        "left": 11,
+        "right": 377,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 596,
+        "bottom": 695,
+        "left": 11,
+        "right": 377,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 156,
+        "bottom": 425,
+        "left": 11,
+        "right": 377,
+        "width": 366,
+        "height": 269
+      },
+      ".round-console": {
+        "top": 434,
+        "bottom": 587,
+        "left": 11,
+        "right": 377,
+        "width": 366,
+        "height": 153
+      },
+      ".app-footer": {
+        "top": 704,
+        "bottom": 735,
+        "left": 11,
+        "right": 377,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "short-mobile-round-end",
+    "phase": "NEXT ROUND ↑",
+    "innerWidth": 390,
+    "innerHeight": 640,
+    "documentHeight": 751,
+    "bodyHeight": 751,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 5,
+        "bottom": 751,
+        "left": -10,
+        "right": 380,
+        "width": 390,
+        "height": 746
+      },
+      ".app-header": {
+        "top": 17,
+        "bottom": 80,
+        "left": 2,
+        "right": 368,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 89,
+        "bottom": 151,
+        "left": 2,
+        "right": 368,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 600,
+        "bottom": 699,
+        "left": 2,
+        "right": 368,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 160,
+        "bottom": 429,
+        "left": 2,
+        "right": 368,
+        "width": 366,
+        "height": 269
+      },
+      ".round-console": {
+        "top": 438,
+        "bottom": 591,
+        "left": 2,
+        "right": 368,
+        "width": 366,
+        "height": 153
+      },
+      ".app-footer": {
+        "top": 708,
+        "bottom": 739,
+        "left": 2,
+        "right": 368,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": []
+  },
+  {
+    "name": "short-mobile-match-end",
+    "phase": "RUN IT BACK ↻",
+    "innerWidth": 390,
+    "innerHeight": 640,
+    "documentHeight": 808,
+    "bodyHeight": 808,
+    "activeElement": "",
+    "rects": {
+      ".app": {
+        "top": 0,
+        "bottom": 808,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 808
+      },
+      ".app-header": {
+        "top": 12,
+        "bottom": 75,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 63
+      },
+      ".nav-island": {
+        "top": 84,
+        "bottom": 146,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 62
+      },
+      ".game-aside": {
+        "top": 657,
+        "bottom": 756,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 99
+      },
+      ".arena": {
+        "top": 155,
+        "bottom": 487,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 332
+      },
+      ".round-console": {
+        "top": 496,
+        "bottom": 648,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 152
+      },
+      ".app-footer": {
+        "top": 765,
+        "bottom": 796,
+        "left": 12,
+        "right": 378,
+        "width": 366,
+        "height": 31
+      }
+    },
+    "overflow": [],
+    "matchVerdict": "YOU WIN"
+  }
+]

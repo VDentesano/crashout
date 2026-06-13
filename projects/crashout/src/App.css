@@ -1,7 +1,14 @@
 .app {
   height: 100%;
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-areas:
+    "header"
+    "nav"
+    "main"
+    "round"
+    "aside"
+    "footer";
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
   max-width: 720px;
   margin: 0 auto;
   padding: clamp(12px, 3vw, 22px);
@@ -11,10 +18,23 @@
 /* Crash trauma + match-win celebration are GSAP-driven (useImpactFx) — richer
    decay/elastic than a CSS loop, and they no-op cleanly under reduced-motion. */
 
-/* Rail wrapper — invisible on mobile (its children, ladder + matchinfo, flow as
-   normal grid rows of .app). Becomes the glass Dynamic Island on desktop. */
-.rail {
-  display: contents;
+.app-header {
+  grid-area: header;
+}
+.nav-island {
+  grid-area: nav;
+}
+.game-aside {
+  grid-area: aside;
+}
+.arena {
+  grid-area: main;
+}
+.round-console {
+  grid-area: round;
+}
+.app-footer {
+  grid-area: footer;
 }
 
 .redflash {
@@ -54,6 +74,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .chip {
   display: inline-flex;
@@ -168,6 +190,104 @@
   font-size: 14px;
 }
 
+/* ── Nav island ────────────────────────────────────── */
+.nav-island {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(18, 18, 33, 0.76);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+.nav-item {
+  position: relative;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--muted-rd);
+  transition: border-color 0.14s, color 0.14s, background 0.14s;
+}
+.nav-item:hover,
+.nav-item:focus-visible,
+.nav-item.active {
+  color: var(--volt);
+  border-color: var(--volt-dim);
+  background: rgba(0, 255, 133, 0.06);
+  outline: none;
+}
+.nav-icon {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1;
+}
+.nav-text {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Game aside ────────────────────────────────────── */
+.game-aside {
+  display: grid;
+  gap: 10px;
+}
+.aside-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-top-color: var(--line-bright);
+  border-radius: 12px;
+  background: rgba(18, 18, 33, 0.78);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+.aside-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-rd);
+}
+.aside-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted-rd);
+}
+.aside-row span {
+  min-width: 0;
+}
+.aside-row b {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.aside-row b.pos {
+  color: var(--gold);
+}
+.aside-row b.neg {
+  color: var(--crash);
+}
+.aside-rule p {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted-rd);
+}
+
 /* ── Ladder rail (best-of-5) ───────────────────────── */
 .ladder {
   display: flex;
@@ -220,37 +340,6 @@
 @keyframes pip-pulse {
   0%, 100% { opacity: 0.45; }
   50% { opacity: 1; }
-}
-
-.legend {
-  display: flex;
-  gap: 10px;
-  white-space: nowrap;
-}
-.legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted-rd);
-}
-.ldot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-  background: var(--line);
-}
-.ldot.win {
-  background: var(--volt);
-}
-.ldot.loss {
-  background: var(--crash);
-}
-.ldot.draw {
-  background: var(--muted);
 }
 
 /* ── Match status (standing + plain-language rule) ─── */
@@ -353,17 +442,24 @@
 .panel.won .score {
   color: var(--volt);
 }
-/* ── Ghost identity (left panel is always the opponent) ──
+/* ── Duel identity colors ─────────────────────────────
    The duel must read as YOU (volt) vs GHOST (cyan) BEFORE any state fires —
    not two identical grey boxes. The idle framing only applies at rest, so a
    ghost cash-out (.cashed) or bust (.bust) still overrides — bust semantics
    win over identity, which is correct. */
-.panel.left .who {
+.panel.ghost .who {
   color: var(--ghost);
 }
-.panel.left.idle {
+.panel.ghost.idle {
   border-color: var(--ghost-dim);
   box-shadow: inset 0 0 24px rgba(50, 214, 255, 0.06);
+}
+.panel.you .who {
+  color: var(--volt);
+}
+.panel.you.idle {
+  border-color: var(--volt-dim);
+  box-shadow: inset 0 0 24px rgba(0, 255, 133, 0.05);
 }
 .who {
   font-size: 10px;
@@ -579,11 +675,25 @@
   color: var(--crash);
 }
 
-/* ── Controls ──────────────────────────────────────── */
-.controls {
+/* ── Round console / controls ──────────────────────── */
+.round-console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  border-top-color: var(--line-bright);
+  background: rgba(18, 18, 33, 0.84);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 36px rgba(0, 0, 0, 0.28);
+}
+.round-info,
+.round-actions {
+  min-width: 0;
+}
+.round-actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8px;
 }
 .primary {
@@ -636,15 +746,24 @@
 .primary:hover {
   filter: brightness(1.08);
 }
+.primary:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.55) brightness(0.72);
+  opacity: 0.72;
+}
 .hint {
+  grid-column: 1 / -1;
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--muted-rd);
+  text-align: center;
 }
 .cryptosoon {
+  grid-column: 1 / -1;
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--muted-rd);
+  text-align: center;
 }
 .cryptosoon strong {
   color: var(--volt);
@@ -727,6 +846,16 @@
 }
 .primary.rebuy:hover {
   filter: brightness(1.1);
+}
+
+.app-footer {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--muted-rd);
 }
 
 /* ── History panel ─────────────────────────────────── */
@@ -1100,79 +1229,113 @@
   font-weight: 600;
 }
 
-/* ── Mobile trims (norman 2A) ───────────────────────────
-   Reclaim vertical budget for .stage WITHOUT touching spacing tokens. The
-   won/lost/drawn legend is reference material already taught in onboarding and
-   carried by pip colour — redundant on every frame of a small screen. The
-   .rule and .cryptosoon lines are demoted in App.tsx (idle-only render). */
-@media (max-width: 560px) {
-  .legend {
+@media (max-width: 719px) {
+  .game-aside {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aside-rule {
     display: none;
   }
 }
 
-/* ── Desktop layout (>=1024px) — sidebar + arena, not a stretched column ──
-   The viewport splits into a persistent left Dynamic Island (ladder + standing)
-   and a central arena (header strip + score panels + stage + verdict + CTA).
-   Right scoreboard column deferred to Phase 2 (needs real opponent data). */
+@media (max-width: 560px) {
+  .app {
+    gap: 9px;
+  }
+  .brand {
+    font-size: 20px;
+  }
+  .chip {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+  .nav-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .aside-section {
+    padding: 9px;
+  }
+  .aside-row,
+  .aside-row b {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .game-aside {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 720px) {
+  .round-console {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+    align-items: center;
+  }
+  .hint,
+  .cryptosoon {
+    text-align: left;
+  }
+}
+
+/* ── Desktop cockpit layout (>=1024px) ───────────────── */
 @media (min-width: 1024px) {
   .app {
-    max-width: 1120px;
-    grid-template-columns: 264px minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    max-width: 1220px;
+    grid-template-columns: 72px 248px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "rail head"
-      "rail stage"
-      "rail ctl";
+      "header header header"
+      "nav aside main"
+      "nav aside round"
+      "footer footer footer";
     gap: 16px 22px;
     padding: clamp(18px, 3vw, 32px);
   }
-  .hud {
-    grid-area: head;
-  }
-  .arena {
-    grid-area: stage;
-  }
-  .controls {
-    grid-area: ctl;
-  }
 
-  /* Dynamic Island — full-height floating glass material (Cycle 13 §4). */
-  .rail {
-    grid-area: rail;
+  .nav-island {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    align-self: stretch;
-    padding: 20px 18px;
+    align-self: center;
+    justify-self: center;
+    width: 64px;
+    padding: 10px;
     background: rgba(18, 18, 30, 0.82);
     backdrop-filter: blur(28px) saturate(1.7);
     -webkit-backdrop-filter: blur(28px) saturate(1.7);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-bottom-color: rgba(0, 0, 0, 0.3);
-    border-radius: 20px;
+    border-radius: 18px;
     box-shadow:
       0 0 0 1px rgba(0, 0, 0, 0.5),
       0 8px 32px rgba(0, 0, 0, 0.6),
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
       0 0 60px rgba(0, 255, 133, 0.04);
   }
-
-  /* Inside the island the ladder stacks vertically and the standing anchors to
-     the bottom — status at a glance, with the live read held at the base. */
-  .ladder {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+  .nav-item {
+    width: 44px;
+    height: 44px;
+    padding: 0;
   }
-  .pips {
-    height: 8px;
+  .nav-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
-  .pip {
-    height: 8px;
+  .game-aside {
+    align-self: stretch;
+    align-content: start;
   }
-  .matchinfo {
-    margin-top: auto;
+  .round-console {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.72fr);
   }
 }
 
@@ -1261,4 +1424,478 @@
 .challenge-dismiss:hover {
   color: var(--ink);
   background: var(--surface-hi);
+}
+
+/* ── Premium cockpit pass — wireframe contract ─────────
+   Subject: high-stakes play-money crash duel.
+   Signature: a glass flight deck where the curve sits behind laminated controls.
+   The restraint is deliberate: one luminous arena, everything else quieter. */
+.app,
+.app * {
+  letter-spacing: 0;
+}
+
+.app {
+  min-height: 100svh;
+  height: auto;
+  width: min(100%, 1240px);
+  max-width: 1240px;
+  grid-template-rows: auto auto minmax(360px, 1fr) auto auto auto;
+  padding:
+    max(14px, env(safe-area-inset-top))
+    max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom))
+    max(14px, env(safe-area-inset-left));
+  overflow-x: hidden;
+}
+
+button:focus-visible,
+input:focus-visible,
+.share-challenge-fallback-text:focus-visible {
+  outline: 2px solid rgba(0, 255, 133, 0.72);
+  outline-offset: 3px;
+}
+
+.app-header,
+.nav-island,
+.aside-section,
+.stage,
+.verdict,
+.round-console,
+.app-footer,
+.sheet,
+.history-panel,
+.gate,
+.onboard-card,
+.challenge-banner,
+.share-challenge,
+.share-challenge-fallback {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.026) 44%, rgba(0, 0, 0, 0.18)),
+    rgba(13, 14, 27, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(22px) saturate(1.45);
+  -webkit-backdrop-filter: blur(22px) saturate(1.45);
+}
+
+.app-header {
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+
+.brand {
+  flex: 0 0 auto;
+  font-size: clamp(19px, 3vw, 27px);
+  text-wrap: balance;
+}
+
+.hud-right {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.chip {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--muted-rd);
+  white-space: nowrap;
+}
+
+.chip em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 8px;
+  margin-left: 2px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  font-style: normal;
+  color: var(--gold);
+}
+
+.economy-chip {
+  color: var(--gold);
+}
+
+.settings-sheet {
+  position: fixed;
+  left: max(16px, calc(50% - 598px));
+  top: 50%;
+  right: auto;
+  z-index: 72;
+  transform: translateY(-50%);
+}
+
+.sheet-backdrop {
+  overscroll-behavior: contain;
+}
+
+.sheet-row:hover,
+.sheet-row:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-island {
+  border-radius: 18px;
+}
+
+.nav-item {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  z-index: -1;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.16), transparent 62%);
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.nav-item:hover::before,
+.nav-item:focus-visible::before,
+.nav-item.active::before {
+  opacity: 1;
+}
+
+.nav-item:hover,
+.nav-item:focus-visible,
+.nav-item.active {
+  outline: 2px solid transparent;
+  color: var(--ink);
+  border-color: rgba(0, 255, 133, 0.34);
+  background: rgba(0, 255, 133, 0.09);
+}
+
+.nav-icon {
+  font-size: 16px;
+}
+
+.game-aside {
+  align-content: start;
+}
+
+.aside-section {
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11);
+}
+
+.aside-label {
+  color: rgba(240, 242, 248, 0.62);
+}
+
+.aside-row {
+  min-width: 0;
+  color: rgba(214, 220, 236, 0.68);
+}
+
+.aside-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arena {
+  grid-template-rows: auto minmax(260px, 1fr) minmax(58px, auto);
+  gap: 12px;
+}
+
+.opponents {
+  gap: 12px;
+}
+
+.panel {
+  min-width: 0;
+  min-height: 84px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(120px, 1.1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035) 46%, rgba(0, 0, 0, 0.22)),
+    rgba(14, 15, 29, 0.68);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+}
+
+.panel.right {
+  grid-template-columns: minmax(120px, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+  text-align: right;
+}
+
+.panel.right .panel-identity {
+  grid-column: 2;
+}
+
+.panel.right .panel-readout {
+  grid-column: 1;
+  grid-row: 1;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.panel-identity,
+.panel-readout {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panel-readout {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.who,
+.pname,
+.roundline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  font-size: clamp(24px, 4vw, 36px);
+}
+
+.stage {
+  min-height: clamp(260px, 43vh, 520px);
+  border-radius: 22px;
+  background:
+    radial-gradient(90% 70% at 50% 108%, rgba(0, 255, 133, 0.16), transparent 62%),
+    radial-gradient(70% 48% at 18% 18%, rgba(50, 214, 255, 0.11), transparent 58%),
+    radial-gradient(62% 50% at 78% 8%, rgba(139, 92, 246, 0.11), transparent 55%),
+    linear-gradient(180deg, rgba(10, 12, 25, 0.82), rgba(3, 4, 10, 0.88));
+}
+
+.stage::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 34%);
+  opacity: 0.62;
+}
+
+.ticker {
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.verdict {
+  min-height: 58px;
+  border-radius: 16px;
+}
+
+.share-challenge,
+.share-challenge-fallback {
+  justify-self: stretch;
+}
+
+.round-console {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 96px;
+  border-radius: 18px;
+}
+
+.round-actions {
+  justify-self: stretch;
+}
+
+.primary {
+  min-height: 58px;
+  border-radius: 15px;
+  transition: transform 0.08s ease, filter 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.primary.cash,
+.primary.enter {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent 46%),
+    linear-gradient(135deg, #00ff85, #6dffbd);
+}
+
+.primary.next {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.06);
+}
+
+.hint,
+.cryptosoon {
+  display: none;
+}
+
+.app-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  text-align: left;
+}
+
+.footer-copy {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  color: rgba(214, 220, 236, 0.66);
+}
+
+.footer-copy span {
+  min-width: 0;
+}
+
+.footer-copy strong {
+  color: var(--gold);
+}
+
+.footer-bets {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.bet-opt {
+  min-height: 34px;
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.history-panel,
+.gate,
+.onboard {
+  overscroll-behavior: contain;
+}
+
+.history-close:focus-visible,
+.challenge-dismiss:focus-visible,
+.share-challenge:focus-visible,
+.bet-opt:focus-visible,
+.primary:focus-visible {
+  outline: 2px solid rgba(0, 255, 133, 0.72);
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .app {
+    grid-template-rows: auto auto minmax(320px, auto) auto auto auto;
+  }
+
+  .hud-right {
+    flex-wrap: wrap;
+  }
+
+  .economy-chip {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .opponents {
+    flex-direction: column;
+  }
+
+  .panel,
+  .panel.right {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+  }
+
+  .panel.right .panel-identity {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .panel.right .panel-readout {
+    grid-column: 2;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .stage {
+    min-height: 280px;
+  }
+
+  .standing {
+    flex-wrap: wrap;
+  }
+
+  .left {
+    margin-left: 0;
+  }
+
+  .footer-bets {
+    flex-wrap: wrap;
+  }
+
+  .settings-sheet {
+    left: max(14px, env(safe-area-inset-left));
+    top: 116px;
+    width: min(220px, calc(100vw - 28px));
+    transform: none;
+  }
+}
+
+@media (min-width: 720px) {
+  .round-console {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.58fr);
+    align-items: center;
+  }
+
+  .footer-bets {
+    justify-self: end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app {
+    grid-template-columns: 70px 240px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 14px 18px;
+  }
+
+  .nav-island {
+    width: 60px;
+    padding: 8px;
+  }
+
+  .nav-item {
+    width: 42px;
+    height: 42px;
+  }
+
+  .round-console {
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 0.48fr);
+  }
+
+  .app-footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
 }

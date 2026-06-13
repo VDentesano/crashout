@@ -14,7 +14,7 @@
 #   kill $(cat .auto-loop.pid)  # Force stop
 #
 # Config (env vars):
-#   ENGINE=claude               # Engine selection: claude|codex (default: claude)
+#   ENGINE=codex                # Engine selection: claude|codex (default: codex)
 #   MODEL=...                   # Optional model override (empty = engine default)
 #   CLAUDE_BIN=...              # Optional Claude executable override
 #   CLAUDE_PERMISSION_MODE=bypassPermissions
@@ -22,6 +22,8 @@
 #   CODEX_BIN=...               # Optional Codex executable override
 #   CODEX_SANDBOX_MODE=danger-full-access
 #                               # Codex sandbox mode (only for ENGINE=codex)
+#   CODEX_REASONING_EFFORT=medium
+#                               # Codex reasoning effort: minimal|low|medium|high|xhigh
 #   LOOP_INTERVAL=30            # Seconds between cycles (default: 30)
 #   CYCLE_TIMEOUT_SECONDS=1800  # Max seconds per cycle before force-kill
 #   MAX_CONSECUTIVE_ERRORS=5    # Circuit breaker threshold
@@ -38,11 +40,40 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+# Explicit environment variables passed by make/shell should beat
+# .auto-loop.env project defaults.
+OVERRIDE_ENGINE_SET=0
+OVERRIDE_MODEL_SET=0
+OVERRIDE_CODEX_REASONING_EFFORT_SET=0
+
+if [ "${ENGINE+x}" = "x" ]; then
+    OVERRIDE_ENGINE="$ENGINE"
+    OVERRIDE_ENGINE_SET=1
+fi
+if [ "${MODEL+x}" = "x" ]; then
+    OVERRIDE_MODEL="$MODEL"
+    OVERRIDE_MODEL_SET=1
+fi
+if [ "${CODEX_REASONING_EFFORT+x}" = "x" ]; then
+    OVERRIDE_CODEX_REASONING_EFFORT="$CODEX_REASONING_EFFORT"
+    OVERRIDE_CODEX_REASONING_EFFORT_SET=1
+fi
+
 # === Load .auto-loop.env if present ===
 if [ -f "$PROJECT_DIR/.auto-loop.env" ]; then
     set -a
     source "$PROJECT_DIR/.auto-loop.env"
     set +a
+fi
+
+if [ "$OVERRIDE_ENGINE_SET" -eq 1 ]; then
+    ENGINE="$OVERRIDE_ENGINE"
+fi
+if [ "$OVERRIDE_MODEL_SET" -eq 1 ]; then
+    MODEL="$OVERRIDE_MODEL"
+fi
+if [ "$OVERRIDE_CODEX_REASONING_EFFORT_SET" -eq 1 ]; then
+    CODEX_REASONING_EFFORT="$OVERRIDE_CODEX_REASONING_EFFORT"
 fi
 
 LOG_DIR="$PROJECT_DIR/logs"
@@ -52,15 +83,22 @@ PID_FILE="$PROJECT_DIR/.auto-loop.pid"
 STATE_FILE="$PROJECT_DIR/.auto-loop-state"
 
 # Loop settings (all overridable via env vars)
-ENGINE="${ENGINE:-claude}"
+ENGINE="${ENGINE:-codex}"
 ENGINE="$(echo "$ENGINE" | tr '[:upper:]' '[:lower:]')"
-MODEL="${MODEL:-}"
+if [ -z "${MODEL:-}" ]; then
+    if [ "$ENGINE" = "codex" ]; then
+        MODEL="${CODEX_MODEL:-gpt-5.5}"
+    else
+        MODEL="${CLAUDE_MODEL:-}"
+    fi
+fi
 MODEL_LABEL="${MODEL:-config-default}"
 CLAUDE_BIN="${CLAUDE_BIN:-}"
 CLAUDE_PERMISSION_MODE="${CLAUDE_PERMISSION_MODE:-bypassPermissions}"
 CLAUDE_EFFORT="${CLAUDE_EFFORT:-max}"
 CODEX_BIN="${CODEX_BIN:-}"
 CODEX_SANDBOX_MODE="${CODEX_SANDBOX_MODE:-danger-full-access}"
+CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-medium}"
 LOOP_INTERVAL="${LOOP_INTERVAL:-30}"
 CYCLE_TIMEOUT_SECONDS="${CYCLE_TIMEOUT_SECONDS:-1800}"
 MAX_CONSECUTIVE_ERRORS="${MAX_CONSECUTIVE_ERRORS:-5}"
@@ -406,6 +444,9 @@ run_codex_cycle() {
         if [ -n "$MODEL" ]; then
             codex_cmd+=("-m" "$MODEL")
         fi
+        if [ -n "$CODEX_REASONING_EFFORT" ]; then
+            codex_cmd+=("-c" "model_reasoning_effort=\"${CODEX_REASONING_EFFORT}\"")
+        fi
         codex_cmd+=("$prompt")
         "${codex_cmd[@]}"
     ) > "$output_file" 2>&1 &
@@ -612,7 +653,7 @@ error_count=0
 log "=== Auto Company Loop Started (PID $$) ==="
 log "Project: $PROJECT_DIR"
 if [ "$ENGINE" = "codex" ]; then
-    log "Engine: codex | Model: $MODEL_LABEL | Sandbox: $CODEX_SANDBOX_MODE"
+    log "Engine: codex | Model: $MODEL_LABEL | ReasoningEffort: $CODEX_REASONING_EFFORT | Sandbox: $CODEX_SANDBOX_MODE"
 else
     log "Engine: claude | Model: $MODEL_LABEL | PermissionMode: $CLAUDE_PERMISSION_MODE"
 fi

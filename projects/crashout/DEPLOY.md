@@ -29,13 +29,49 @@ other branch is a preview.
 ## Deploy (repeatable)
 
 ```bash
-pnpm deploy          # = pnpm build && wrangler pages deploy dist --branch main
+pnpm run check       # lint + unit checks + production build
+pnpm deploy          # = pnpm run check && wrangler pages deploy dist --branch main
 ```
 
 `wrangler.toml` pins `name = "crashout"` and `pages_build_output_dir = "dist"`,
 so the bare `wrangler pages deploy` also works. After it prints the
 `*.pages.dev` URL, open it and play one full match + rematch to confirm the
 live build matches the local Playwright smoke test.
+
+## Release gate
+
+GitHub Actions runs the deterministic release gate on every PR and every push
+that touches `projects/crashout/`:
+
+```bash
+pnpm run check       # pnpm lint && pnpm test && pnpm build
+```
+
+Check the repo wiring before pushing the workflow or enabling branch protection:
+
+```bash
+pnpm release:ready
+```
+
+The readiness check verifies that `projects/crashout` is being released from a
+Git repo with an `origin`, that the local branch matches the Cloudflare Pages
+production branch (`main` by default), and that `.github/workflows/crashout-ci.yml`
+exists at the repository root. It exits non-zero while any release blocker is
+still present.
+
+Before a production upload, also run the Chromium cockpit smoke locally when
+layout or interaction code changed. The script expects a Vite preview server and
+a Chromium instance with CDP enabled:
+
+```bash
+pnpm preview --host 127.0.0.1 --port 5175
+chromium --remote-debugging-port=9222 --user-data-dir=/tmp/crashout-cdp --headless=new
+SMOKE_OUT_DIR=../../docs/qa/cockpit-smoke pnpm smoke:cockpit http://127.0.0.1:5175/
+```
+
+The cockpit smoke is intentionally not a CI requirement yet: it depends on an
+external browser process and creates screenshot artifacts. Promote it once the
+project adds a browser-test runner or a managed CI browser setup.
 
 ## Wiring the backend (after deploy)
 

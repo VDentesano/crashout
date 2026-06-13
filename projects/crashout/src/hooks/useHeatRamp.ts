@@ -51,7 +51,7 @@ export function useHeatRamp(
     const t = heatOf(value);
     el.style.color = lerpColor(t);
     el.style.textShadow = `0 0 ${34 + t * 8}px ${lerpGlow(t)}`;
-  }, [value, active]);
+  }, [ref, value, active]);
 
   return ref;
 }

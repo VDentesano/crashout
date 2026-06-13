@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Ref } from 'react';
 import './App.css';
 import CurveCanvas from './components/CurveCanvas';
@@ -23,7 +23,8 @@ import {
   MIN_BET,
   rebuy,
 } from './game/economy';
-import { recordMatch } from './game/history';
+import { fetchHistory, recordMatch } from './game/history';
+import type { MatchStats } from './game/history';
 import HistoryPanel from './components/HistoryPanel';
 import LeaderboardPanel from './components/LeaderboardPanel';
 import ShareChallenge from './components/ShareChallenge';
@@ -32,6 +33,8 @@ import ChallengeBanner from './components/ChallengeBanner';
 function fmt(m: number | null): string {
   return m === null ? 'BUST' : `${m.toFixed(2)}×`;
 }
+
+const COIN_FORMAT = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 
 type PipState = 'win' | 'loss' | 'draw' | 'current' | 'pending';
 
@@ -55,12 +58,14 @@ export default function App() {
   const [balance, setBalance] = useState(getBalance);
   const [bet, setBet] = useState<BetOption>(100);
   const [lastDelta, setLastDelta] = useState<number | null>(null);
+  const [playerStats, setPlayerStats] = useState<MatchStats | null>(null);
   const betRef = useRef(bet);
   const economyApplied = useRef(false);
   useEffect(() => { betRef.current = bet; }, [bet]);
   // On mount: reconcile balance with server (server wins; localStorage is optimistic cache).
   useEffect(() => {
     fetchAndReconcileBalance(setBalance);
+    fetchHistory(1).then((history) => setPlayerStats(history?.stats ?? null));
   }, []);
   useEffect(() => {
     if (phase === 'matchEnd' && matchResult && !economyApplied.current) {
@@ -78,6 +83,9 @@ export default function App() {
           cashoutMultiplier: lastRound.player.multiplier,
           delta,
         });
+        window.setTimeout(() => {
+          fetchHistory(1).then((history) => setPlayerStats(history?.stats ?? null));
+        }, 350);
       }
     }
     if (phase === 'idle') {
@@ -125,8 +133,8 @@ export default function App() {
   // are cleared on inactive so .idle/.crash CSS own the color again.
   useHeatRamp(tickerRef, multiplier, running);
 
-  // Desktop Dynamic Island reveal — staggers the rail rows in on mount (>=1024px,
-  // no-reduced-motion). No-op on mobile where the rail is display:contents.
+  // Desktop telemetry reveal — staggers the aside rows in on mount (>=1024px,
+  // no-reduced-motion). No-op on mobile where the aside is a regular block.
   const railRef = useSidebarReveal();
 
   // Impact FX — GSAP "feel" beats at the two emotional peaks: crash trauma (frame
@@ -152,27 +160,79 @@ export default function App() {
     return n >= 1 && n <= 1000 ? n.toFixed(2) : null;
   });
   const [showChallenge, setShowChallenge] = useState(true);
+  const blockingOverlayOpen = showMenu || showHistory || showLeaderboard;
+  const affordableBet = [...BET_OPTIONS].reverse().find((option) => balance >= option) ?? MIN_BET;
+  const activeBet = balance >= bet ? bet : affordableBet;
+  const roundOutcomes = rounds.map((round) => decideOutcome(round.player, round.ghost));
+  const winStreak = [...roundOutcomes].reverse().findIndex((outcome) => outcome !== 'win');
+  const currentStreak = winStreak === -1 ? roundOutcomes.length : winStreak;
+  const bestCashout = rounds.reduce((best, round) => {
+    const mx = round.player.multiplier;
+    return mx === null ? best : Math.max(best, mx);
+  }, state.playerCashed ?? 0);
+  const displayBest = playerStats?.bestCashout ?? bestCashout;
+  const displayNet = playerStats?.netDelta ?? lastDelta;
+  const displayWinRate = playerStats ? `${Math.round(playerStats.winRate * 100)}%` : '—';
 
   const closeHelp = () => {
     localStorage.setItem(ONBOARD_KEY, '1');
     setShowHelp(false);
   };
+  const openGame = () => {
+    setShowHistory(false);
+    setShowLeaderboard(false);
+    setShowMenu(false);
+  };
+  const openHistory = () => {
+    setShowHistory(true);
+    setShowLeaderboard(false);
+    setShowMenu(false);
+  };
+  const openLeaderboard = () => {
+    setShowLeaderboard(true);
+    setShowHistory(false);
+    setShowMenu(false);
+  };
+  const openSettings = () => {
+    setShowMenu((v) => !v);
+    setShowHistory(false);
+    setShowLeaderboard(false);
+  };
+
+  const enterDuel = useCallback(() => {
+    if (balance < activeBet) return;
+    betRef.current = activeBet;
+    setBet(activeBet);
+    advance();
+  }, [activeBet, advance, balance]);
 
   // Space / Enter — cash out while live, otherwise advance the ladder. While the
   // onboarding overlay is up it intercepts the key to dismiss itself, so the
   // first press enters the duel instead of acting on the board underneath.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.code === 'Escape') {
+        if (showHelp || blockingOverlayOpen) {
+          e.preventDefault();
+          setShowHelp(false);
+          setShowMenu(false);
+          setShowHistory(false);
+          setShowLeaderboard(false);
+        }
+        return;
+      }
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
         if (showHelp) closeHelp();
+        else if (blockingOverlayOpen) return;
         else if (running && !playerCashedOut) cashOut();
+        else if (phase === 'idle') enterDuel();
         else if (!running) advance();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showHelp, running, playerCashedOut, advance, cashOut]);
+  }, [showHelp, blockingOverlayOpen, running, playerCashedOut, phase, advance, cashOut, enterDuel]);
 
   return (
     <div className="app" ref={appRef}>
@@ -182,8 +242,8 @@ export default function App() {
         <ChallengeBanner multiplier={challengeMx} onDismiss={() => setShowChallenge(false)} />
       )}
 
-      <header className="hud">
-        <div className="brand">
+      <header className="hud app-header">
+        <div className="brand" translate="no">
           CRASH<span>OUT</span>
         </div>
         <div className="hud-right">
@@ -192,166 +252,143 @@ export default function App() {
               className="chip"
               title="Provably fair — the server commits the seed (hash shown) before the round and reveals it after, so you can verify the crash wasn't chosen."
             >
-              <i className={`dot ${state.fairVerified === false ? 'crash' : 'volt'}`} />
-              {state.fairVerified ? 'FAIR ✓' : 'PROVABLY FAIR'}
-              <code>{state.proof ? state.proof.serverSeedHash.slice(0, 8) : '········'}</code>
+              <i aria-hidden="true" className={`dot ${state.fairVerified === false ? 'crash' : 'volt'}`} />
+              {state.fairVerified === false ? 'FAIR?' : 'FAIR'}
             </span>
           ) : (
             <span className="chip warn" title="Local demo RNG — play money, not server-verified">
-              <i className="dot" /> DEMO RNG
+              <i aria-hidden="true" className="dot" /> DEMO
             </span>
           )}
           <span className={`chip ${isBackendConnected ? '' : 'warn'}`}>
-            <i className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
+            <i aria-hidden="true" className={`dot ${isBackendConnected ? 'volt' : 'crash'}`} />
             {isBackendConnected ? 'LIVE' : 'LOCAL'}
           </span>
-          <span className="chip chip-gold" title="Your play-money balance">
-            <i className="dot dot-gold" />
-            {balance.toLocaleString()}
+          <span className="chip chip-gold economy-chip" title="Balance, current bet, and current round win streak">
+            <i aria-hidden="true" className="dot dot-gold" />
+            {COIN_FORMAT.format(balance)} <em>Bet {activeBet}</em> <em>Streak {currentStreak}</em>
           </span>
-          {/* Header controls collapse into one ⋯ sheet (mobile + desktop alike) —
-              keeps the bar to brand + 2 status chips + a single menu affordance. */}
-          <div className="hud-menu">
-            <button
-              className="ghosttoggle"
-              onClick={() => setShowMenu((v) => !v)}
-              title="Settings"
-              aria-haspopup="menu"
-              aria-expanded={showMenu}
-            >
-              ⋯
-            </button>
-            {showMenu && (
-              <>
-                <button
-                  className="sheet-backdrop"
-                  aria-label="Close menu"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="sheet" role="menu">
-                  <button className="sheet-row" onClick={toggleMute} role="menuitemcheckbox" aria-checked={!muted}>
-                    <span className="sheet-ico">{muted ? '🔇' : '🔊'}</span>
-                    Sound <b>{muted ? 'off' : 'on'}</b>
-                  </button>
-                  <button
-                    className="sheet-row"
-                    onClick={() => {
-                      setShowHistory(true);
-                      setShowMenu(false);
-                    }}
-                    role="menuitem"
-                  >
-                    <span className="sheet-ico">📋</span>
-                    Match history
-                  </button>
-                  <button
-                    className="sheet-row"
-                    onClick={() => {
-                      setShowLeaderboard(true);
-                      setShowMenu(false);
-                    }}
-                    role="menuitem"
-                  >
-                    <span className="sheet-ico">🏆</span>
-                    Leaderboard
-                  </button>
-                  <button
-                    className="sheet-row"
-                    onClick={() => {
-                      setShowHelp(true);
-                      setShowMenu(false);
-                    }}
-                    role="menuitem"
-                  >
-                    <span className="sheet-ico">?</span>
-                    How to play
-                  </button>
-                  {import.meta.env.DEV && (
-                    <button
-                      className="sheet-row"
-                      onClick={() => {
-                        setShowGate((v) => !v);
-                        setShowMenu(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <span className="sheet-ico">∑</span>
-                      Gate instrument
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </header>
 
-      {/* Dynamic Island rail — display:contents on mobile (children flow as
-          stacked rows); a floating glass sidebar on desktop (>=1024px). Holds
-          the best-of-5 ladder + live standing. */}
-      <aside className="rail" ref={railRef}>
-      {/* Ladder rail — best-of-5 progress */}
-      <div className="ladder">
-        <span className="ladder-label">
-          {phase === 'idle' ? 'BEST OF 5' : `ROUND ${roundNo}/${ROUNDS_PER_MATCH}`}
-        </span>
-        <div className="pips">
-          {Array.from({ length: ROUNDS_PER_MATCH }, (_, i) => {
-            // Key by state so a pip remounts when it resolves — that restart is
-            // what fires the T3 tick-forward animation on the landing.
-            const ps = pipState(i, rounds, running);
-            return <span key={`${i}-${ps}`} className={`pip ${ps}`} />;
-          })}
-        </div>
-        <div className="legend" aria-hidden>
-          <span><i className="ldot win" />won</span>
-          <span><i className="ldot loss" />lost</span>
-          <span><i className="ldot draw" />drawn</span>
-        </div>
-      </div>
+      <nav className="nav-island" aria-label="Game sections">
+        <button
+          className={`nav-item ${!showHistory && !showLeaderboard && !showMenu ? 'active' : ''}`}
+          onClick={openGame}
+          aria-label="Game"
+        >
+          <span aria-hidden="true" className="nav-icon">🎮</span>
+          <span className="nav-text">Game</span>
+        </button>
+        <button
+          className={`nav-item ${showLeaderboard ? 'active' : ''}`}
+          onClick={openLeaderboard}
+          aria-label="Leaderboard"
+        >
+          <span aria-hidden="true" className="nav-icon">🏆</span>
+          <span className="nav-text">Leaderboard</span>
+        </button>
+        <button className={`nav-item ${showHistory ? 'active' : ''}`} onClick={openHistory} aria-label="Match history">
+          <span aria-hidden="true" className="nav-icon">📋</span>
+          <span className="nav-text">History</span>
+        </button>
+        <button
+          className={`nav-item ${showMenu ? 'active' : ''}`}
+          onClick={openSettings}
+          aria-label="Settings"
+          aria-haspopup="menu"
+          aria-expanded={showMenu}
+        >
+          <span aria-hidden="true" className="nav-icon">⚙</span>
+          <span className="nav-text">Settings</span>
+        </button>
+      </nav>
 
-      {/* Match status — who's ahead, rounds left, and the rule in plain words */}
-      <div className="matchinfo">
-        {inMatch ? (
-          <div className="standing">
-            <span className={`lead ${leader}`}>
-              {leader === 'you' ? 'YOU LEAD' : leader === 'ghost' ? 'GHOST LEADS' : 'TIED'}
-            </span>
-            {leader !== 'tied' && <span className="gap">+{Math.abs(gap).toFixed(2)}</span>}
-            <span className="left">
-              {roundsLeft <= 0 ? 'final round' : `${roundsLeft} ${roundsLeft === 1 ? 'round' : 'rounds'} left`}
-            </span>
+      {showMenu && (
+        <>
+          <button
+            className="sheet-backdrop"
+            aria-label="Close settings"
+            onClick={() => setShowMenu(false)}
+          />
+          <div className="sheet settings-sheet" role="menu">
+            <button className="sheet-row" onClick={toggleMute} role="menuitemcheckbox" aria-checked={!muted}>
+              <span aria-hidden="true" className="sheet-ico">{muted ? '🔇' : '🔊'}</span>
+              Sound <b>{muted ? 'Off' : 'On'}</b>
+            </button>
+            <button className="sheet-row" onClick={openHistory} role="menuitem">
+              <span aria-hidden="true" className="sheet-ico">📋</span>
+              Match History
+            </button>
+            <button className="sheet-row" onClick={openLeaderboard} role="menuitem">
+              <span aria-hidden="true" className="sheet-ico">🏆</span>
+              Leaderboard
+            </button>
+            <button
+              className="sheet-row"
+              onClick={() => {
+                setShowHelp(true);
+                setShowMenu(false);
+              }}
+              role="menuitem"
+            >
+              <span aria-hidden="true" className="sheet-ico">?</span>
+              How To Play
+            </button>
+            {import.meta.env.DEV && (
+              <button
+                className="sheet-row"
+                onClick={() => {
+                  setShowGate((v) => !v);
+                  setShowMenu(false);
+                }}
+                role="menuitem"
+              >
+                <span aria-hidden="true" className="sheet-ico">∑</span>
+                Gate Instrument
+              </button>
+            )}
           </div>
-        ) : (
-          <div className="standing">
-            <span className="lead tied">BEST OF 5</span>
-            <span className="left">highest score wins</span>
+        </>
+      )}
+
+      <aside className="game-aside" ref={railRef}>
+        <section className="aside-section">
+          <span className="aside-label">Match info</span>
+          <div className="aside-row">
+            <span>Round</span>
+            <b>{phase === 'idle' ? 'Ready' : `${roundNo}/${ROUNDS_PER_MATCH}`}</b>
           </div>
-        )}
-        {/* Reference material, not live state — show pre-match only (the standing
-            line carries the live read once a duel is underway). Always in the ? overlay. */}
-        {!inMatch && <p className="rule">{scoringRule}</p>}
-      </div>
+          <div className="aside-row">
+            <span>Bet</span>
+            <b>{activeBet}</b>
+          </div>
+          <div className="aside-row">
+            <span>Arm</span>
+            <b>{state.arm === 'drop-lowest' ? 'Best 4' : 'Banked'}</b>
+          </div>
+        </section>
+        <section className="aside-section">
+          <span className="aside-label">Player stats</span>
+          <div className="aside-row">
+            <span>Win Rate</span>
+            <b>{displayWinRate}</b>
+          </div>
+          <div className="aside-row">
+            <span>Best</span>
+            <b>{displayBest > 0 ? fmt(displayBest) : '—'}</b>
+          </div>
+          <div className="aside-row">
+            <span>Net</span>
+            <b className={displayNet === null ? '' : displayNet >= 0 ? 'pos' : 'neg'}>
+              {displayNet === null ? '—' : `${displayNet > 0 ? '+' : ''}${displayNet}`}
+            </b>
+          </div>
+        </section>
       </aside>
 
       <main className="arena">
         <div className="opponents">
-          <ScorePanel
-            who="GHOST"
-            name={state.ghostName || 'matching…'}
-            score={ghostLive}
-            roundLine={
-              matchEnd
-                ? null
-                : state.ghostCashed !== null
-                  ? fmt(state.ghostCashed)
-                  : running
-                    ? 'riding…'
-                    : '—'
-            }
-            kind={state.ghostCashed !== null ? 'cashed' : crashed ? 'bust' : 'idle'}
-            align="left"
-          />
           <ScorePanel
             who="YOU"
             name="you"
@@ -360,15 +397,31 @@ export default function App() {
               matchEnd
                 ? null
                 : state.playerCashed !== null
-                  ? fmt(state.playerCashed)
+                  ? `Cashed ${fmt(state.playerCashed)}`
                   : running
-                    ? 'in the air'
+                    ? 'In The Air'
                     : '—'
             }
             kind={state.playerCashed !== null ? 'cashed' : crashed ? 'bust' : 'idle'}
-            align="right"
+            align="left"
             won={matchWon}
             panelRef={wonPanelRef}
+          />
+          <ScorePanel
+            who="GHOST"
+            name={state.ghostName || 'matching…'}
+            score={ghostLive}
+            roundLine={
+              matchEnd
+                ? null
+                : state.ghostCashed !== null
+                  ? `Cashed ${fmt(state.ghostCashed)}`
+                  : running
+                    ? 'Riding…'
+                    : '—'
+            }
+            kind={state.ghostCashed !== null ? 'cashed' : crashed ? 'bust' : 'idle'}
+            align="right"
           />
         </div>
 
@@ -415,60 +468,90 @@ export default function App() {
         )}
       </main>
 
-      <footer className="controls">
-        {running ? (
-          <button
-            className={`primary cash ${playerCashedOut ? 'done' : ''}`}
-            onClick={cashOut}
-            disabled={playerCashedOut}
-          >
-            {playerCashedOut ? `LOCKED ${fmt(state.playerCashed)}` : `CASH OUT  ${multiplier.toFixed(2)}×`}
-          </button>
-        ) : roundEnd ? (
-          <button className="primary next" onClick={advance}>
-            NEXT ROUND ↑
-          </button>
-        ) : matchEnd ? (
-          <button className="primary rematch" onClick={advance}>
-            RUN IT BACK ↻
-          </button>
-        ) : balance < MIN_BET ? (
-          <button className="primary rebuy" onClick={() => setBalance(rebuy(setBalance))}>
-            REBUY · 1,000 COINS
-          </button>
-        ) : (
-          <>
-            <div className="bet-row">
-              <span className="bet-label">BET</span>
-              {BET_OPTIONS.map((o) => (
-                <button
-                  key={o}
-                  className={`bet-opt ${bet === o ? 'active' : ''} ${balance < o ? 'dim' : ''}`}
-                  onClick={() => balance >= o && setBet(o)}
-                  disabled={balance < o}
-                >
-                  {o}
-                </button>
-              ))}
+      <section className="round-console" aria-label="Round controls">
+        <div className="round-info">
+          <div className="ladder">
+            <span className="ladder-label">
+              {phase === 'idle' ? 'BEST OF 5' : `ROUND ${roundNo}/${ROUNDS_PER_MATCH}`}
+            </span>
+            <div className="pips">
+              {Array.from({ length: ROUNDS_PER_MATCH }, (_, i) => {
+                const ps = pipState(i, rounds, running);
+                return <span key={`${i}-${ps}`} className={`pip ${ps}`} />;
+              })}
             </div>
-            <button className="primary enter" onClick={advance}>
-              ENTER DUEL · {bet}
+          </div>
+          <div className="matchinfo">
+            {inMatch ? (
+              <div className="standing">
+                <span className={`lead ${leader}`}>
+                  {leader === 'you' ? 'YOU LEAD' : leader === 'ghost' ? 'GHOST LEADS' : 'TIED'}
+                </span>
+                {leader !== 'tied' && <span className="gap">+{Math.abs(gap).toFixed(2)}</span>}
+                <span className="left">
+                  {roundsLeft <= 0 ? 'final round' : `${roundsLeft} ${roundsLeft === 1 ? 'round' : 'rounds'} left`}
+                </span>
+              </div>
+            ) : (
+              <div className="standing">
+                <span className="lead tied">BEST OF 5</span>
+                <span className="left">highest score wins</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="round-actions">
+          {running ? (
+            <button
+              className={`primary cash ${playerCashedOut ? 'done' : ''}`}
+              onClick={cashOut}
+              disabled={playerCashedOut}
+            >
+              {playerCashedOut ? `LOCKED ${fmt(state.playerCashed)}` : `CASH OUT  ${multiplier.toFixed(2)}×`}
             </button>
-          </>
-        )}
-        <p className="hint">
-          {running
-            ? 'space / tap — cash out before the crash. banked points are safe.'
-            : matchEnd
-              ? 'highest match score wins. a crash only zeroes that round.'
-              : 'best-of-5 ladder · highest cumulative score takes the duel.'}
-        </p>
-        {/* Marketing line, not gameplay guidance — keep it off the live screen,
-            show on the idle/pre-match state only. */}
-        {!inMatch && (
-          <p className="cryptosoon">
+          ) : roundEnd ? (
+            <button className="primary next" onClick={advance}>
+              NEXT ROUND →
+            </button>
+          ) : matchEnd ? (
+            <button className="primary rematch" onClick={advance}>
+              RUN IT BACK ↻
+            </button>
+          ) : balance < MIN_BET ? (
+            <button className="primary rebuy" onClick={() => setBalance(rebuy(setBalance))}>
+              REBUY · 1,000 COINS
+            </button>
+          ) : (
+            <>
+              <button className="primary enter" onClick={enterDuel} disabled={balance < activeBet}>
+                ENTER DUEL · {activeBet}
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+
+      <footer className="app-footer">
+        <div className="footer-copy">
+          <span>{scoringRule}</span>
+          <span>
             Play money — <strong>on-chain crypto duels coming soon.</strong>
-          </p>
+          </span>
+        </div>
+        {!inMatch && balance >= MIN_BET && (
+          <div className="footer-bets" aria-label="Bet size">
+            <span className="bet-label">BET</span>
+            {BET_OPTIONS.map((o) => (
+              <button
+                key={o}
+                className={`bet-opt ${activeBet === o ? 'active' : ''} ${balance < o ? 'dim' : ''}`}
+                onClick={() => balance >= o && setBet(o)}
+                disabled={balance < o}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
         )}
       </footer>
 
@@ -500,15 +583,20 @@ function ScorePanel({
   panelRef?: Ref<HTMLDivElement>;
 }) {
   const shown = useCountUp(score);
+  const isGhost = who === 'GHOST';
   return (
-    <div className={`panel ${align} ${kind} ${won ? 'won' : ''}`} ref={panelRef}>
-      <span className="who">{who}</span>
-      <span className="pname">{name}</span>
-      <span className="score">
-        {shown.toFixed(2)}
-        <i>pts</i>
-      </span>
-      {roundLine && <span className="roundline">{roundLine}</span>}
+    <div className={`panel ${align} ${who.toLowerCase()} ${kind} ${won ? 'won' : ''}`} ref={panelRef}>
+      <div className="panel-identity">
+        <span className="who">{who}</span>
+        <span className="pname">{name}</span>
+      </div>
+      <div className="panel-readout">
+        <span className="score">
+          {shown.toFixed(2)}
+          <i>pts</i>
+        </span>
+        <span className="roundline">{roundLine ?? (isGhost ? 'Opponent locked' : 'Match locked')}</span>
+      </div>
     </div>
   );
 }

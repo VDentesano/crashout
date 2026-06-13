@@ -53,8 +53,22 @@ case "${1:-}" in
             echo "Daemon: N/A (systemd not available)"
         fi
 
+        if [ -f "$PROJECT_DIR/.auto-loop.env" ]; then
+            echo ""
+            echo "=== Current Config ==="
+            (
+                set -a
+                source "$PROJECT_DIR/.auto-loop.env"
+                set +a
+                echo "ENGINE=${ENGINE:-codex}"
+                echo "MODEL=${MODEL:-gpt-5.5}"
+                echo "CODEX_REASONING_EFFORT=${CODEX_REASONING_EFFORT:-medium}"
+            )
+        fi
+
         if [ -f "$STATE_FILE" ]; then
             echo ""
+            echo "=== Last Runtime State ==="
             cat "$STATE_FILE"
         fi
 

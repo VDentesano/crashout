@@ -53,8 +53,16 @@ if [ ! -f "$PROJECT_DIR/scripts/core/auto-loop.sh" ]; then
     exit 1
 fi
 
+# Load project loop config so daemon installation validates the same engine
+# that auto-loop.sh will run.
+if [ -f "$PROJECT_DIR/.auto-loop.env" ]; then
+    set -a
+    source "$PROJECT_DIR/.auto-loop.env"
+    set +a
+fi
+
 # Ensure engine is available (claude or codex)
-ENGINE="${ENGINE:-claude}"
+ENGINE="${ENGINE:-codex}"
 ENGINE="$(echo "$ENGINE" | tr '[:upper:]' '[:lower:]')"
 
 if [ "$ENGINE" = "claude" ]; then

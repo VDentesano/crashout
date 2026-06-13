@@ -19,26 +19,32 @@ $ARGUMENTS
 
 | Agent | 文件 | 职能 | 模型 |
 |-------|------|----------|------|
-| CEO | `ceo-bezos` | 战略决策、商业模式、PR/FAQ、优先级 | inherit |
-| CTO | `cto-vogels` | 技术架构、技术选型、系统设计 | inherit |
-| 逆向思考 | `critic-munger` | 质疑决策、识别致命缺陷、Pre-Mortem、防止集体幻觉 | inherit |
-| 产品设计 | `product-norman` | 产品定义、用户体验、可用性 | inherit |
-| UI 设计 | `ui-duarte` | 视觉设计、设计系统、配色排版 | inherit |
-| 交互设计 | `interaction-cooper` | 用户流程、Persona、交互模式 | inherit |
-| 全栈开发 | `fullstack-dhh` | 代码实现、技术方案、开发 | inherit |
-| QA | `qa-bach` | 测试策略、质量把控、Bug 分析 | inherit |
-| DevOps/SRE | `devops-hightower` | 部署流水线、CI/CD、基础设施、监控运维 | inherit |
-| 营销 | `marketing-godin` | 定位、品牌、获客、内容 | inherit |
-| 运营 | `operations-pg` | 用户运营、增长、社区、PMF | inherit |
-| 销售 | `sales-ross` | 销售漏斗、转化策略 | inherit |
-| CFO | `cfo-campbell` | 定价策略、财务模型、成本控制、单位经济 | inherit |
-| 调研分析 | `research-thompson` | 市场调研、竞品分析、行业趋势、机会发现 | inherit |
+| CEO | `ceo-bezos` | 战略决策、商业模式、PR/FAQ、优先级 | gpt-5.5 / medium |
+| CTO | `cto-vogels` | 技术架构、技术选型、系统设计 | gpt-5.5 / medium |
+| 逆向思考 | `critic-munger` | 质疑决策、识别致命缺陷、Pre-Mortem、防止集体幻觉 | gpt-5.5 / medium |
+| 产品设计 | `product-norman` | 产品定义、用户体验、可用性 | gpt-5.5 / medium |
+| UI 设计 | `ui-duarte` | 视觉设计、设计系统、配色排版 | gpt-5.5 / medium |
+| 交互设计 | `interaction-cooper` | 用户流程、Persona、交互模式 | gpt-5.5 / medium |
+| 全栈开发 | `fullstack-dhh` | 代码实现、技术方案、开发 | gpt-5.5 / medium |
+| QA | `qa-bach` | 测试策略、质量把控、Bug 分析 | gpt-5.5 / medium |
+| DevOps/SRE | `devops-hightower` | 部署流水线、CI/CD、基础设施、监控运维 | gpt-5.5 / medium |
+| 营销 | `marketing-godin` | 定位、品牌、获客、内容 | gpt-5.5 / medium |
+| 运营 | `operations-pg` | 用户运营、增长、社区、PMF | gpt-5.5 / medium |
+| 销售 | `sales-ross` | 销售漏斗、转化策略 | gpt-5.5 / medium |
+| CFO | `cfo-campbell` | 定价策略、财务模型、成本控制、单位经济 | gpt-5.5 / medium |
+| 调研分析 | `research-thompson` | 市场调研、竞品分析、行业趋势、机会发现 | gpt-5.5 / medium |
 
 ## 模型架构
 
-所有 agent 使用 `model: inherit`，继承 coordinator 的模型（当前为 claude-fable-5）。
+**Coordinator**: Codex CLI with `model = "gpt-5.5"` and `model_reasoning_effort = "medium"`.
+**Subagents**: Same engine/model unless a specific cycle explicitly requests a cheaper or faster tier.
 
-**注意**：Claude Code API 不支持 coordinator 和 subagent 使用不同模型。因此所有 agent 都在同一模型上运行。
+**配置规则**:
+- Coordinator 运行在 Codex GPT-5.5 medium.
+- 所有 subagent 显式指定 `model: gpt-5.5` and `model_reasoning_effort: medium` when the subagent runtime supports those fields.
+- If the runtime does not expose native subagent creation, simulate the team sequentially: read each selected agent file, perform that role's task, write its output to `docs/<role>/`, then synthesize the decision.
+
+**注意**：The engine of record is Codex. Do not reference Claude-only model names in new cycle plans.
 
 ## 执行步骤
 
@@ -63,9 +69,9 @@ $ARGUMENTS
 使用 Agent Teams 功能组建临时团队：
 - 创建团队，team_name 基于任务简短命名（英文、kebab-case）
 - 为每个成员创建具体的任务（TaskCreate），任务描述要包含足够上下文
-- **关键**：用 Task 工具 spawn 每个 teammate 时，必须指定 `model` 参数为从 agent frontmatter 读取的模型
+  - **关键**：when spawning teammates, explicitly specify `model: gpt-5.5` and `model_reasoning_effort: medium` if supported.
   - `subagent_type` 选 `general-purpose`
-  - `model` 使用 inherit（与 coordinator 相同）
+  - `model` 设置为 `gpt-5.5`
   - 在 prompt 中注入对应 agent 文件的完整内容作为角色设定
 - spawn teammate 时通过 prompt 告知：你的角色设定、要完成的任务、产出文档存放在 `docs/<role>/` 目录下
 

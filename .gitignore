@@ -46,6 +46,8 @@ Thumbs.db
 projects/*/node_modules/
 projects/*/dist/
 projects/*/build/
+projects/*/.codegraph/
+.wrangler/
 
 # Backups
 *.bak

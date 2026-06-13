@@ -43,6 +43,8 @@ CRASHOUT is a 1v1 duel in the browser. You and an opponent both watch the multip
 
 What makes it different: you can literally watch your opponent's behavior through the shared ticker. And it has a leaderboard, match history, and net delta stats if you're into that.
 
+Also: when you cash out, you get a one-click challenge link — "I cashed out at 4.32x — beat me" — and whoever opens it sees your score as a target to beat. No account needed on either side.
+
 Would love brutal feedback — especially on whether the 1v1 angle actually feels different from regular crash, or if it's just the same thing with extra steps.
 
 Play free: https://crashout-euq.pages.dev
@@ -66,6 +68,8 @@ I built this because the "crash game" mechanic is psychologically interesting �
 CRASHOUT puts two players on the same curve. You don't know exactly when your opponent will cash out. You're making a bet on your own risk tolerance AND reading theirs.
 
 Stack: React 19 + Vite front-end, INSFORGE backend (edge functions + D1), deployed on Cloudflare Pages. The multiplier curve uses a provably-fair seeded PRNG so neither player can predict the crash point.
+
+One growth mechanic I'm curious about: after a cashout you can copy a challenge link (`?c=4.32`) that renders your multiplier as a target banner for whoever opens it. Trying to make the score itself the share unit instead of a generic invite.
 
 It's free, no signups required, no real money. Happy to discuss the architecture or the game design decisions.
 
@@ -97,6 +101,7 @@ You can feel the difference. Watching the ticker while knowing another human is 
 
 Features:
 - Instant play, no download, no account required
+- Challenge links: cash out, copy "beat my 4.32x" link, send it to a friend — they open it and your score is their target
 - Persistent leaderboard with net delta, win rate, best cashout
 - Match history and stats
 - Play money only — no real gambling, no real crypto
@@ -148,7 +153,18 @@ Try it free 👇
 https://crashout-euq.pages.dev
 ```
 
-**Why it works:** Three-tweet thread lets the hook breathe. Tweet 1 is the scroll-stopper — "real person instead of the house" is the differentiator in one line. Tweets 2–3 explain the psychology. No hype words ("amazing," "game-changing"). Honest about play money.
+**Tweet 4:**
+```
+Best part: when you cash out, you get a challenge link.
+
+"I cashed out at 4.32× — beat me."
+
+Send it to a friend. They open it, your score is their target. No account, no install.
+
+The flex IS the invite: https://crashout-euq.pages.dev/?c=4.32
+```
+
+**Why it works:** Three-tweet thread lets the hook breathe. Tweet 1 is the scroll-stopper — "real person instead of the house" is the differentiator in one line. Tweets 2–3 explain the psychology. Tweet 4 demos the viral mechanic by literally being one — the link in the tweet is itself a challenge. No hype words ("amazing," "game-changing"). Honest about play money.
 
 ---
 

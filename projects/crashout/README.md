@@ -7,6 +7,16 @@ rounds takes the duel. v0 is a **play-money retention experiment** — no crypto
 no wallets, no accounts. It exists to answer one question: *does the branded 1v1
 crash rematch loop retain once a crash no longer wipes the whole result?*
 
+## Challenge a friend with one link
+
+Cash out, hit copy, paste anywhere:
+
+> I cashed out at **4.32×** on CRASHOUT — beat me: https://crashout-euq.pages.dev/?c=4.32
+
+The `?c=` param drops your multiplier into a challenge banner on their screen.
+No account, no install — your score *is* the invite. One brag, one link, one
+new duelist. This is the whole growth loop.
+
 ## Run
 
 ```bash

@@ -39,7 +39,8 @@ check('0.9 < 1 (invalid)', 0.9 < 1);
 check('100 >= 1', 100 >= 1);
 
 console.log('\ncashoutMultiplier validation:');
-check('null is allowed', null == null);
+const validCashout = (value: number | null): boolean => value === null || value >= 1;
+check('null is allowed', validCashout(null));
 check('1.5 >= 1 (valid)', 1.5 >= 1);
 check('0.5 < 1 (invalid)', 0.5 < 1);
 

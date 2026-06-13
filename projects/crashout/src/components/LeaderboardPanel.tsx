@@ -24,13 +24,28 @@ export default function LeaderboardPanel({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    setData(null);
+    let ignore = false;
     fetchLeaderboard({ metric, window, limit: 20 }).then((d) => {
+      if (ignore) return;
       setData(d);
       setLoading(false);
     });
+    return () => {
+      ignore = true;
+    };
   }, [metric, window]);
+
+  const selectMetric = (nextMetric: LeaderboardMetric) => {
+    setLoading(true);
+    setData(null);
+    setMetric(nextMetric);
+  };
+
+  const selectWindow = (nextWindow: LeaderboardWindow) => {
+    setLoading(true);
+    setData(null);
+    setWindow(nextWindow);
+  };
 
   const metricLabel: Record<LeaderboardMetric, string> = {
     netDelta: 'NET',
@@ -59,7 +74,7 @@ export default function LeaderboardPanel({ onClose }: { onClose: () => void }) {
             <button
               key={m}
               className={`lb-tab ${metric === m ? 'active' : ''}`}
-              onClick={() => setMetric(m)}
+              onClick={() => selectMetric(m)}
             >
               {metricLabel[m]}
             </button>
@@ -72,7 +87,7 @@ export default function LeaderboardPanel({ onClose }: { onClose: () => void }) {
             <button
               key={w}
               className={`lb-win ${window === w ? 'active' : ''}`}
-              onClick={() => setWindow(w)}
+              onClick={() => selectWindow(w)}
             >
               {w === 'all' ? 'ALL TIME' : '7 DAYS'}
             </button>

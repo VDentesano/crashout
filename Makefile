@@ -1,12 +1,36 @@
-.PHONY: start stop status last cycles monitor dashboard pause resume install uninstall team help clean-logs reset-consensus
+.PHONY: start start-codex start-claude codex claude stop status last cycles monitor dashboard pause resume install uninstall team help clean-logs reset-consensus
 
-ENGINE ?= claude
-MODEL ?= fable
+ENGINE ?= codex
+MODEL ?=
+CODEX_REASONING_EFFORT ?= medium
+
+ENGINE_GOALS := $(filter codex claude,$(MAKECMDGOALS))
+ifneq ($(words $(ENGINE_GOALS)),0)
+ifneq ($(words $(ENGINE_GOALS)),1)
+$(error Choose only one engine: codex or claude)
+endif
+override ENGINE := $(firstword $(ENGINE_GOALS))
+endif
 
 # === Quick Start ===
 
-start: ## Start the auto-loop in foreground
-	./scripts/core/auto-loop.sh
+start: ## Start loop (use: make start codex | make start claude | make start ENGINE=claude)
+	@engine="$$(printf '%s' "$(ENGINE)" | tr '[:upper:]' '[:lower:]')"; \
+	if [ "$$engine" != "claude" ] && [ "$$engine" != "codex" ]; then \
+		echo "Unsupported ENGINE='$(ENGINE)'. Use: make start codex OR make start claude"; \
+		exit 1; \
+	fi; \
+	echo "Starting Auto Company with ENGINE=$$engine"; \
+	ENGINE="$$engine" MODEL="$(MODEL)" CODEX_REASONING_EFFORT="$(CODEX_REASONING_EFFORT)" ./scripts/core/auto-loop.sh
+
+start-codex: ## Start the auto-loop with Codex
+	@$(MAKE) start codex
+
+start-claude: ## Start the auto-loop with Claude
+	@$(MAKE) start claude
+
+codex claude:
+	@:
 
 stop: ## Stop the loop gracefully
 	./scripts/core/stop-loop.sh

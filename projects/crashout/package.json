@@ -3,13 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "pnpm@11.5.1",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "check": "pnpm lint && pnpm test && pnpm build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "release:ready": "node scripts/release-ready.mjs",
+    "smoke:cockpit": "node scripts/cockpit-smoke.mjs",
     "test": "node src/game/logic.test.ts && node src/audio/prefs.test.ts && node src/game/fairness.test.ts && node src/game/economy.test.ts && node src/game/history.test.ts && node src/game/leaderboard.test.ts",
-    "deploy": "pnpm test && pnpm build && wrangler pages deploy dist --branch main"
+    "deploy": "pnpm run check && wrangler pages deploy dist --branch main"
   },
   "dependencies": {
     "gsap": "^3.15.0",

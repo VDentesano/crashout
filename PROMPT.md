@@ -19,15 +19,17 @@ Priority: **Ship > Plan > Discuss**
 
 ### 3. Team Assembly and Execution
 
-**CRITICAL**: You MUST use the `team` skill to spawn subagents. Do NOT do everything yourself in one monolithic response. The framework is designed for multi-agent collaboration.
+**CRITICAL**: You MUST use the `team` skill to coordinate specialist agent roles. Do NOT do everything yourself in one monolithic response. The framework is designed for multi-agent collaboration.
 
 Read `.claude/skills/team/SKILL.md`, assemble the team according to the process. Select 3-5 most relevant agents per round, do not bring all.
 
 When spawning teammates:
 - ALWAYS specify `model` parameter based on agent tier
+- Current engine of record: Codex CLI, `model: gpt-5.5`, `model_reasoning_effort: medium`
 - Inject the full agent file content as the role prompt
 - Tell each teammate to store outputs in `docs/<role>/`
 - Give each agent a SPECIFIC task, not "help with the project"
+- If native subagent spawning is unavailable in the current runtime, simulate the team sequentially by reading each selected agent file, executing that role's task, saving its doc output, then synthesizing the decision.
 
 If this cycle will produce landing page, dashboard, marketing site, product Web UI, application interface, frontend component, or any user-facing frontend deliverable:
 - First read and use `.claude/skills/frontend-design.md` before layout, styling, or implementation

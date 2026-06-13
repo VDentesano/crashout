@@ -52,7 +52,7 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
@@ -60,7 +60,10 @@ body {
   color: var(--ink);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: rgba(0, 255, 133, 0.16);
   /* Atmosphere: a layered, purposeful dark-casino space — volt bleeding up from
      the floor, a cool violet wash high-left for depth, and a visible (not
      whispered) scan grid. The deepest layer is a vertical gradient so the void
@@ -73,6 +76,19 @@ body {
     linear-gradient(180deg, #0b0b16 0%, #060609 60%);
   background-size: 100% 100%, 100% 100%, 46px 46px, 46px 46px, 100% 100%;
   background-position: center, center, center, center, center;
+}
+
+@media (min-width: 1024px) and (min-height: 720px) {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 }
 
 /* Grain overlay for texture. */
@@ -92,6 +108,7 @@ button {
   border: none;
   background: none;
   color: inherit;
+  touch-action: manipulation;
 }
 
 @keyframes rise {
