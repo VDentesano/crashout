@@ -48,6 +48,7 @@ projects/*/dist/
 projects/*/build/
 projects/*/.codegraph/
 .wrangler/
+docs/qa/cockpit-smoke/
 
 # Backups
 *.bak
