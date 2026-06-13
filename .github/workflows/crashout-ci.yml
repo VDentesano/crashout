@@ -56,7 +56,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run cockpit smoke
-        run: pnpm run smoke:cockpit
+        run: pnpm run smoke:cockpit:ci
 
       - name: Upload cockpit smoke artifacts
         if: ${{ !cancelled() }}
