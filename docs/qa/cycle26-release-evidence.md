@@ -20,7 +20,7 @@ This is checking evidence with a small amount of human review. It is not full ex
 6. `Install Playwright Chromium` completes in GitHub Actions.
 7. `Run cockpit smoke` completes `pnpm run smoke:cockpit` successfully.
 8. The workflow uploads a non-expired artifact named `cockpit-smoke`.
-9. The artifact contains `measurements.json` plus 24 PNG screenshots: `idle`, `history`, `settings`, `running`, `round-end`, and `match-end` for desktop, tablet, mobile, and short-mobile.
+9. The artifact contains `measurements.json` plus 16 PNG screenshots: `idle`, `running`, `round-end`, and `match-end` for desktop, tablet, mobile, and short-mobile. `history` and `settings` are measured in JSON but not screenshot-captured.
 10. `measurements.json` reports 24 measured states, 4 deterministic `*-match-end` states, 0 overflow findings, and match-end E2E metadata with `rounds === 5`.
 11. A human downloads or inspects the artifact before merge and confirms the match-end screenshots are not blank, clipped, or visually inconsistent with a completed match.
 
@@ -36,7 +36,7 @@ SMOKE_OUT_DIR=/tmp/crashout-cycle26-cockpit-smoke pnpm run smoke:cockpit
 Verify the smoke output shape:
 
 ```bash
-node -e "const fs=require('fs'); const dir='/tmp/crashout-cycle26-cockpit-smoke'; const d=JSON.parse(fs.readFileSync(dir+'/measurements.json','utf8')); const match=d.filter(x=>x.name.endsWith('-match-end')); const summary={measurements:d.length, matchEnds:match.length, overflow:d.reduce((n,x)=>n+(x.overflow?.length||0),0), pngs:fs.readdirSync(dir).filter(f=>f.endsWith('.png')).length, e2e:match.map(x=>x.e2e)}; console.log(JSON.stringify(summary,null,2)); if (summary.measurements!==24 || summary.matchEnds!==4 || summary.overflow!==0 || summary.pngs!==24 || match.some(x=>x.e2e?.rounds!==5)) process.exit(1);"
+node -e "const fs=require('fs'); const dir='/tmp/crashout-cycle26-cockpit-smoke'; const d=JSON.parse(fs.readFileSync(dir+'/measurements.json','utf8')); const match=d.filter(x=>x.name.endsWith('-match-end')); const summary={measurements:d.length, matchEnds:match.length, overflow:d.reduce((n,x)=>n+(x.overflow?.length||0),0), pngs:fs.readdirSync(dir).filter(f=>f.endsWith('.png')).length, e2e:match.map(x=>x.e2e)}; console.log(JSON.stringify(summary,null,2)); if (summary.measurements!==24 || summary.matchEnds!==4 || summary.overflow!==0 || summary.pngs!==16 || match.some(x=>x.e2e?.rounds!==5)) process.exit(1);"
 ```
 
 Optional repeatability check when the PR changes gameplay, scoring, or the E2E hook:
@@ -69,7 +69,7 @@ node -e "const fs=require('fs'); const dir='/tmp/crashout-cycle26-gh-smoke'; con
 Expected artifact facts:
 
 - `measurements.json` exists and parses.
-- PNG count is 24.
+- PNG count is 16.
 - Measurement count is 24.
 - Match-end count is 4.
 - Total overflow finding count is 0.
@@ -89,4 +89,4 @@ Expected artifact facts:
 
 Conditional GO to open the PR and proceed to protected GitHub Actions verification.
 
-Do not merge until `Crashout CI / Lint, test, build` is green on the intended PR head SHA and the `cockpit-smoke` artifact has been inspected for 24 measured states, 4 deterministic five-round match-end states, 24 screenshots, and 0 overflow findings. NO-GO if the artifact is missing, stale, incomplete, or shows a broken match-end screen, even if the status check is green.
+Do not merge until `Crashout CI / Lint, test, build` is green on the intended PR head SHA and the `cockpit-smoke` artifact has been inspected for 24 measured states, 4 deterministic five-round match-end states, 16 screenshots, and 0 overflow findings. NO-GO if the artifact is missing, stale, incomplete, or shows a broken match-end screen, even if the status check is green.

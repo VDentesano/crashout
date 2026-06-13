@@ -61,7 +61,7 @@ cd ../..
 Verify the local smoke output shape without staging it:
 
 ```bash
-node -e "const fs=require('fs'); const dir='docs/qa/cockpit-smoke'; const d=JSON.parse(fs.readFileSync(dir+'/measurements.json','utf8')); const pngs=fs.readdirSync(dir).filter(f=>f.endsWith('.png')).sort(); const match=d.filter(x=>x.name.endsWith('-match-end')); const overflow=d.reduce((n,x)=>n+(x.overflow?.length||0),0); console.log(JSON.stringify({measurements:d.length,pngs:pngs.length,matchEnds:match.length,overflow,e2e:match.map(x=>x.e2e)},null,2)); if (d.length!==24 || pngs.length!==24 || match.length!==4 || overflow!==0 || match.some(x=>x.e2e?.rounds!==5)) process.exit(1);"
+node -e "const fs=require('fs'); const dir='docs/qa/cockpit-smoke'; const d=JSON.parse(fs.readFileSync(dir+'/measurements.json','utf8')); const pngs=fs.readdirSync(dir).filter(f=>f.endsWith('.png')).sort(); const match=d.filter(x=>x.name.endsWith('-match-end')); const overflow=d.reduce((n,x)=>n+(x.overflow?.length||0),0); console.log(JSON.stringify({measurements:d.length,pngs:pngs.length,matchEnds:match.length,overflow,e2e:match.map(x=>x.e2e)},null,2)); if (d.length!==24 || pngs.length!==16 || match.length!==4 || overflow!==0 || match.some(x=>x.e2e?.rounds!==5)) process.exit(1);"
 git status --short --ignored
 ```
 
@@ -168,7 +168,7 @@ find /tmp/crashout-cycle26-cockpit-smoke -maxdepth 2 -type f | sort
 Acceptance criteria:
 
 - `measurements.json` is present.
-- There are 24 PNG screenshots: four viewports times `idle`, `history`, `settings`, `running`, `round-end`, and `match-end`.
+- There are 16 PNG screenshots: four viewports times `idle`, `running`, `round-end`, and `match-end`; `history` and `settings` are measured in JSON but not screenshot-captured.
 - `measurements.json` has 24 measurements: six measured states for each viewport.
 - Exactly four measurements end in `-match-end`.
 - Every match-end measurement has `e2e.rounds === 5`.
@@ -179,7 +179,7 @@ Acceptance criteria:
 Machine-check the downloaded artifact:
 
 ```bash
-node -e "const fs=require('fs'); const dir='/tmp/crashout-cycle26-cockpit-smoke'; const d=JSON.parse(fs.readFileSync(dir+'/measurements.json','utf8')); const pngs=fs.readdirSync(dir).filter(f=>f.endsWith('.png')).sort(); const match=d.filter(x=>x.name.endsWith('-match-end')); const overflow=d.reduce((n,x)=>n+(x.overflow?.length||0),0); console.log(JSON.stringify({measurements:d.length,pngs:pngs.length,matchEnds:match.length,overflow,e2e:match.map(x=>x.e2e)},null,2)); if (d.length!==24 || pngs.length!==24 || match.length!==4 || overflow!==0 || match.some(x=>x.e2e?.rounds!==5 || typeof x.e2e?.playerScore!=='number' || typeof x.e2e?.ghostScore!=='number' || !x.e2e?.outcome)) process.exit(1);"
+node -e "const fs=require('fs'); const dir='/tmp/crashout-cycle26-cockpit-smoke'; const d=JSON.parse(fs.readFileSync(dir+'/measurements.json','utf8')); const pngs=fs.readdirSync(dir).filter(f=>f.endsWith('.png')).sort(); const match=d.filter(x=>x.name.endsWith('-match-end')); const overflow=d.reduce((n,x)=>n+(x.overflow?.length||0),0); console.log(JSON.stringify({measurements:d.length,pngs:pngs.length,matchEnds:match.length,overflow,e2e:match.map(x=>x.e2e)},null,2)); if (d.length!==24 || pngs.length!==16 || match.length!==4 || overflow!==0 || match.some(x=>x.e2e?.rounds!==5 || typeof x.e2e?.playerScore!=='number' || typeof x.e2e?.ghostScore!=='number' || !x.e2e?.outcome)) process.exit(1);"
 ```
 
 ## Merge Criteria
