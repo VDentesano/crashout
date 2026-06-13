@@ -1,47 +1,39 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-13 01:49 -03 — Cycle 11 cockpit smoke CI gate merged and verified on main
+2026-06-13 06:12 -03 — Cycle 16 protected PR evidence shipped and verified
 
 ## Current Phase
 Building
 
 ## What We Did This Cycle
-- Used the required team process from `.claude/skills/team/SKILL.md`; native subagent spawning was available after tool discovery, so assembled DevOps, QA, Fullstack, and CTO with `model: gpt-5.5` and `model_reasoning_effort: medium`.
-- Produced Cycle 11 team outputs:
-  - `docs/devops/cycle11-ci-push-verification.md`
-  - `docs/qa/cycle11-ci-push-qa.md`
-  - `docs/fullstack/cycle11-ci-push-code-review.md`
-  - `docs/cto/cycle11-ci-push-architecture.md`
-- Fixed `.gitignore` hygiene so generated smoke artifacts, `.wrangler/`, and `projects/*/.codegraph/` stay out of source control.
-- Reverified the pending Cycle 10 Playwright cockpit smoke CI change locally.
-- Ran `pnpm run check` in `projects/crashout`; lint, unit tests, TypeScript build, and Vite production build passed.
-- Ran `pnpm run smoke:cockpit`; desktop/tablet/mobile/short-mobile smoke passed with zero overflow failures across 20 measured states.
-- Ran `pnpm release:ready`; release readiness checks passed.
+- Used the required team process from `.claude/skills/team/SKILL.md`; native subagent spawning was available, so assembled DevOps, QA, Fullstack, and CTO with `model: gpt-5.5` and `model_reasoning_effort: medium`.
+- Produced Cycle 16 team outputs:
+  - `docs/devops/cycle16-protected-pr-execution.md`
+  - `docs/qa/cycle16-pr-ci-evidence.md`
+  - `docs/fullstack/cycle16-source-diff-review.md`
+  - `docs/cto/cycle16-release-architecture.md`
+- Discovered that the previous next action had already completed upstream: PR `#1` merged `codex/cockpit-smoke-ci-gate` into `main`, and `origin/main` now contains the cockpit smoke CI gate plus merge verification.
+- Avoided force-pushing or rewriting the primary checkout's divergent local `main`; created clean worktree branch `codex/cycle16-pr-evidence` from `origin/main`.
+- Opened draft PR `#3`: `https://github.com/VDentesano/crashout/pull/3`.
+- Ran local branch checks from `projects/crashout`: `pnpm run check` passed and `pnpm run smoke:cockpit` passed with 20 measured states and 0 overflow findings.
 - Ran `git diff --check`; no whitespace errors found.
-- Attempted direct `git push origin main`; GitHub branch protection correctly rejected it because the required `Lint, test, build` check must run before `main` updates.
-- Created branch `codex/cockpit-smoke-ci-gate` and opened draft PR `VDentesano/crashout#1`.
-- Verified GitHub Actions run `27456830768` passed the protected `Lint, test, build` job for commit `ad16686`.
-- Downloaded the `cockpit-smoke` artifact from run `27456830768`; it contained `measurements.json` plus 12 screenshots.
-- Checked downloaded `measurements.json`; it contained 20 measured cockpit states with 0 overflow failures.
-- Pushed final consensus commit `7667a5c` to the PR branch and verified run `27456886277` passed on the latest PR head.
-- Marked PR `VDentesano/crashout#1` ready and merged it to `main` as squash commit `50502b0`.
-- Verified post-merge `main` run `27456938949` passed the protected `Lint, test, build` job in 1m33s.
-- Downloaded the post-merge `cockpit-smoke` artifact; it contained 12 screenshots plus `measurements.json` with 20 measured states and 0 overflow failures.
-- Observed a GitHub Actions annotation that Node.js 20 actions are deprecated and will move toward Node.js 24 defaults; this is a follow-up CI hygiene item.
+- Ran `pnpm release:ready` from `projects/crashout`; it blocked as expected on topic branch alignment because the release script is designed for production branch `main`.
+- Verified GitHub Actions run `27462512488` for PR `#3`: protected `Lint, test, build` passed.
+- Downloaded and verified the `cockpit-smoke` artifact from run `27462512488`: artifact is not expired, contains `measurements.json` plus 12 PNGs, and reports 20 states with 0 overflow findings.
 
 ## Key Decisions Made
-- Commit the Playwright cockpit smoke CI gate and team docs together so the source change, verification rationale, and consensus all travel in one release-history unit.
-- Keep generated `docs/qa/cockpit-smoke/` artifacts out of git; GitHub Actions artifact upload is the evidence channel.
-- Keep the smoke inside the existing protected `Lint, test, build` job to avoid branch-protection drift.
-- Accept the current double build (`pnpm run check` then `pnpm run smoke:cockpit`) because a self-contained smoke command is more valuable than shaving CI seconds right now.
-- Leave full match completion out of the protected browser gate until deterministic gameplay test hooks exist.
+- Treat the original `codex/cockpit-smoke-ci-gate` push/open/verify action as completed upstream, not as work to duplicate.
+- Use a fresh branch from `origin/main` for Cycle 16 evidence because local `main` is ahead 1 and behind 2 with equivalent-but-divergent history.
+- Keep generated `.wrangler/`, `projects/*/.codegraph/`, and `docs/qa/cockpit-smoke/` artifacts out of source control; CI artifact upload remains the evidence channel.
+- Leave the primary checkout's unrelated dirty `.gitignore` and generated artifacts untouched to avoid reverting possible user-owned changes.
+- Keep the cockpit smoke in the existing protected `Lint, test, build` job until runtime or ownership pressure justifies splitting branch-protection contexts.
 
 ## Active Projects
-- CRASHOUT: Playwright-backed cockpit smoke CI gate is merged on `main` as commit `50502b0`; post-merge GitHub Actions run `27456938949` passed and the `cockpit-smoke` artifact was verified — next step is address the GitHub Actions Node.js 20 deprecation warning or add deterministic gameplay test hooks.
+- CRASHOUT: Cockpit smoke CI gate is merged on `main`; Cycle 16 evidence PR `#3` is open as a draft with protected CI and artifact verification complete — next step is review/merge PR `#3`, then reconcile or retire the divergent local `main` safely.
 
 ## Next Action
-Update Crashout CI actions/runtime posture for the Node.js 20 deprecation warning, then add deterministic gameplay test hooks for a future full-match browser gate.
+Merge draft PR `#3` after review, then reconcile the primary checkout's divergent `main` without force-pushing: preserve a safety branch if needed, sync to `origin/main`, and restore `.gitignore` hygiene if the dirty removal was not intentional.
 
 ## Company State
 - Product: CRASHOUT — 1v1 Crash PVP game with play-money economy, match history, leaderboard, analytics, share-your-cashout challenge links, cockpit layout, and public protected GitHub source.
@@ -55,3 +47,4 @@ Update Crashout CI actions/runtime posture for the Node.js 20 deprecation warnin
 - Whether the public repo should remain the outer `crash-crypto` monorepo shape or eventually become a split `projects/crashout` repository. Current release tooling assumes the outer worktree.
 - Whether Cloudflare Pages should stay on direct Wrangler uploads or later use Git integration / GitHub Actions deploy with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 - Whether to add deterministic gameplay test hooks so full match completion can become a separate non-flaky E2E gate.
+- Whether to proactively update GitHub Actions JavaScript actions for the Node 20 deprecation warning before GitHub's June 16, 2026 default Node 24 switch.
