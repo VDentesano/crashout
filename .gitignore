@@ -50,6 +50,7 @@ projects/*/.codegraph/
 .wrangler/
 docs/qa/cockpit-smoke/
 docs/qa/production-smoke/
+docs/qa/insforge-persistence-smoke/
 
 # Backups
 *.bak
