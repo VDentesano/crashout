@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/crashout-ci.yml"
+      - "memories/consensus.md"
       - "projects/crashout/**"
   push:
     branches:
@@ -11,6 +12,7 @@ on:
       - main
     paths:
       - ".github/workflows/crashout-ci.yml"
+      - "memories/consensus.md"
       - "projects/crashout/**"
 
 concurrency:

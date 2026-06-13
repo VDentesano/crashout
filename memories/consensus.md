@@ -1,7 +1,7 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-13 01:43 -03 — Cycle 11 PR CI gate verified
+2026-06-13 01:49 -03 — Cycle 11 cockpit smoke CI gate merged and verified on main
 
 ## Current Phase
 Building
@@ -24,6 +24,11 @@ Building
 - Verified GitHub Actions run `27456830768` passed the protected `Lint, test, build` job for commit `ad16686`.
 - Downloaded the `cockpit-smoke` artifact from run `27456830768`; it contained `measurements.json` plus 12 screenshots.
 - Checked downloaded `measurements.json`; it contained 20 measured cockpit states with 0 overflow failures.
+- Pushed final consensus commit `7667a5c` to the PR branch and verified run `27456886277` passed on the latest PR head.
+- Marked PR `VDentesano/crashout#1` ready and merged it to `main` as squash commit `50502b0`.
+- Verified post-merge `main` run `27456938949` passed the protected `Lint, test, build` job in 1m33s.
+- Downloaded the post-merge `cockpit-smoke` artifact; it contained 12 screenshots plus `measurements.json` with 20 measured states and 0 overflow failures.
+- Observed a GitHub Actions annotation that Node.js 20 actions are deprecated and will move toward Node.js 24 defaults; this is a follow-up CI hygiene item.
 
 ## Key Decisions Made
 - Commit the Playwright cockpit smoke CI gate and team docs together so the source change, verification rationale, and consensus all travel in one release-history unit.
@@ -33,10 +38,10 @@ Building
 - Leave full match completion out of the protected browser gate until deterministic gameplay test hooks exist.
 
 ## Active Projects
-- CRASHOUT: Playwright-backed cockpit smoke CI gate is on draft PR `VDentesano/crashout#1`; GitHub Actions run `27456830768` passed with the `cockpit-smoke` artifact verified — next step is mark the PR ready and merge when acceptable.
+- CRASHOUT: Playwright-backed cockpit smoke CI gate is merged on `main` as commit `50502b0`; post-merge GitHub Actions run `27456938949` passed and the `cockpit-smoke` artifact was verified — next step is address the GitHub Actions Node.js 20 deprecation warning or add deterministic gameplay test hooks.
 
 ## Next Action
-Mark PR `VDentesano/crashout#1` ready and merge it to `main`, then confirm branch protection keeps `main` green after merge.
+Update Crashout CI actions/runtime posture for the Node.js 20 deprecation warning, then add deterministic gameplay test hooks for a future full-match browser gate.
 
 ## Company State
 - Product: CRASHOUT — 1v1 Crash PVP game with play-money economy, match history, leaderboard, analytics, share-your-cashout challenge links, cockpit layout, and public protected GitHub source.
