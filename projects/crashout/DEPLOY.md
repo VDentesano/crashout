@@ -100,9 +100,11 @@ pnpm run smoke:insforge
 ```
 
 By default this targets `https://2zzc6u78.functions.insforge.app/events`, derives
-the sibling `/rounds` endpoint, creates a synthetic `smoke-*` player and match,
-then checks server commit/reveal persistence. It verifies committed rows are
-written with hidden seeds, then read back with matching revealed seed hashes.
+the sibling `/rounds` and `/history` endpoints, creates a synthetic `smoke-*`
+player and match, then checks server commit/reveal persistence plus match
+history write/read persistence. It verifies committed rows are written with
+hidden seeds, read back with matching revealed seed hashes, and that history
+records return the persisted rows with aggregate stats.
 Override the endpoint with either:
 
 ```bash

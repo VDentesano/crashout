@@ -13,11 +13,12 @@ const eventsUrl = normalizeUrl(
     ?? defaultEventsUrl,
 );
 const roundsUrl = siblingUrl(eventsUrl, 'rounds');
+const historyUrl = siblingUrl(eventsUrl, 'history');
 const outDir = process.env.SMOKE_OUT_DIR
   ? path.resolve(process.env.SMOKE_OUT_DIR)
   : path.join(projectDir, '../../docs/qa/insforge-persistence-smoke');
 
-const runId = `cycle37-${Date.now()}-${randomUUID().slice(0, 8)}`;
+const runId = `cycle92-${Date.now()}-${randomUUID().slice(0, 8)}`;
 const playerId = `smoke-${runId}`;
 const matchToken = randomUUID();
 const clientSeed = `smoke-client-${runId}`;
@@ -51,8 +52,8 @@ function check(condition, message, detail = undefined) {
   }
 }
 
-async function postJson(label, body) {
-  const response = await fetch(roundsUrl, {
+async function postJson(url, label, body, expectedStatus = 200) {
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -68,8 +69,12 @@ async function postJson(label, body) {
     }
   }
 
-  steps.push({ label, url: roundsUrl, status: response.status, body: data });
-  check(response.status === 200, `${label} returned ${response.status}; expected 200`, data);
+  steps.push({ label, url, status: response.status, body: data });
+  check(
+    response.status === expectedStatus,
+    `${label} returned ${response.status}; expected ${expectedStatus}`,
+    data,
+  );
   return data;
 }
 
@@ -84,6 +89,7 @@ async function writeSummary(status, extra = {}) {
     matchToken,
     eventsUrl,
     roundsUrl,
+    historyUrl,
     steps,
     ...extra,
   };
@@ -92,10 +98,10 @@ async function writeSummary(status, extra = {}) {
 }
 
 async function main() {
-  console.log(`INSFORGE persistence smoke: ${roundsUrl}`);
+  console.log(`INSFORGE persistence smoke: ${eventsUrl}`);
   console.log(`Synthetic player: ${playerId}`);
 
-  const start = await postJson('rounds start writes committed rows', {
+  const start = await postJson(roundsUrl, 'rounds start writes committed rows', {
     action: 'start',
     matchToken,
     playerId,
@@ -114,7 +120,7 @@ async function main() {
     check(round.nonce === index + 1, `start round ${index} invalid nonce`, round);
   }
 
-  const reveal = await postJson('rounds reveal reads persisted rows', {
+  const reveal = await postJson(roundsUrl, 'rounds reveal reads persisted rows', {
     action: 'reveal',
     matchToken,
   });
@@ -137,8 +143,74 @@ async function main() {
     check(Number(revealed.crashPoint) === committed.crashPoint, 'reveal crashPoint did not match commit', { committed, revealed });
   }
 
+  const historyRows = [
+    {
+      action: 'record',
+      playerId,
+      bet: 100,
+      outcome: 'win',
+      crashPoint: 2.44,
+      cashoutMultiplier: 2.12,
+      delta: 100,
+    },
+    {
+      action: 'record',
+      playerId,
+      bet: 50,
+      outcome: 'loss',
+      crashPoint: 1.33,
+      cashoutMultiplier: null,
+      delta: -50,
+    },
+  ];
+
+  for (const [index, row] of historyRows.entries()) {
+    const record = await postJson(
+      historyUrl,
+      `history record ${index + 1} writes match row`,
+      row,
+      201,
+    );
+    check(record?.ok === true, `history record ${index + 1} did not acknowledge write`, record);
+  }
+
+  const history = await postJson(historyUrl, 'history list reads persisted rows and stats', {
+    action: 'list',
+    playerId,
+    limit: 10,
+  });
+
+  check(Array.isArray(history?.matches), 'history list did not return matches array', history);
+  check(history.matches.length === historyRows.length, 'history list returned unexpected match count', history);
+  check(history?.stats && typeof history.stats === 'object', 'history list did not return stats', history);
+
+  const matchesByOutcome = new Map(history.matches.map((match) => [match.outcome, match]));
+  const win = matchesByOutcome.get('win');
+  const loss = matchesByOutcome.get('loss');
+
+  check(win?.bet === 100, 'history win row did not preserve bet', win);
+  check(Number(win?.delta) === 100, 'history win row did not preserve delta', win);
+  check(Number(win?.cashout_multiplier) === 2.12, 'history win row did not preserve cashout multiplier', win);
+  check(loss?.bet === 50, 'history loss row did not preserve bet', loss);
+  check(Number(loss?.delta) === -50, 'history loss row did not preserve delta', loss);
+  check(loss?.cashout_multiplier === null, 'history loss row did not preserve null cashout', loss);
+
+  for (const [index, match] of history.matches.entries()) {
+    check(typeof match.id === 'string' && match.id.length > 0, `history row ${index} missing id`, match);
+    check(typeof match.created_at === 'string' && !Number.isNaN(Date.parse(match.created_at)), `history row ${index} missing valid created_at`, match);
+    check(typeof match.crash_point === 'number' && match.crash_point >= 1, `history row ${index} invalid crash_point`, match);
+  }
+
+  check(history.stats.total === 2, 'history stats total did not include both synthetic rows', history.stats);
+  check(history.stats.wins === 1, 'history stats wins mismatch', history.stats);
+  check(history.stats.losses === 1, 'history stats losses mismatch', history.stats);
+  check(history.stats.draws === 0, 'history stats draws mismatch', history.stats);
+  check(history.stats.winRate === 0.5, 'history stats winRate mismatch', history.stats);
+  check(history.stats.netDelta === 50, 'history stats netDelta mismatch', history.stats);
+  check(Number(history.stats.bestCashout) === 2.12, 'history stats bestCashout mismatch', history.stats);
+
   const summary = await writeSummary('passed');
-  console.log(`OK ${summary.steps.length} INSFORGE commit/reveal persistence checks passed`);
+  console.log(`OK ${summary.steps.length} INSFORGE persistence checks passed`);
   console.log(`Evidence: ${path.relative(projectDir, path.join(outDir, 'summary.json'))}`);
 }
 
