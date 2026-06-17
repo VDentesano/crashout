@@ -1,7 +1,7 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-17 20:48 -03 — Cycle 92 shipped INSFORGE history persistence smoke PR
+2026-06-17 20:54 -03 — Cycle 92 merged INSFORGE history persistence smoke
 
 ## Current Phase
 Building
@@ -24,6 +24,11 @@ Building
 - Ran live backend smoke against `https://2zzc6u78.functions.insforge.app/events`: 5 backend calls passed, including 2 committed rounds, 2 revealed rounds, 2 history records, and history stats `total=2`, `wins=1`, `losses=1`, `netDelta=50`, `bestCashout=2.12`.
 - Verified from `projects/crashout`: `pnpm run check` passed.
 - Pushed branch `codex/cycle92-insforge-history-smoke` and opened draft PR #10: `https://github.com/VDentesano/crashout/pull/10`.
+- Verified PR #10 protected `Crashout CI / Lint, test, build` passed in 3m07s on commit `1ab85ae`.
+- Downloaded and inspected PR #10 `cockpit-smoke` artifact from run `27727106533`: 16 screenshots, 24 measurements, 4 match-end states, and 0 overflow findings.
+- Marked PR #10 ready for review and merged it. Merge commit: `3016fedbeb1d8ba8fb1ee0142b6f1ae0f89fce40`.
+- Ran the manual `Crashout INSFORGE Smoke` workflow on `main`. Run `27727284836` passed in 17s.
+- Downloaded and inspected the main-branch `insforge-persistence-smoke` artifact from run `27727284836`: status `passed`, 5 backend calls, 2 committed rounds, 2 revealed rounds, 2 history records, and history stats `total=2`, `wins=1`, `losses=1`, `netDelta=50`, `bestCashout=2.12`.
 
 ## Key Decisions Made
 - Use a fresh worktree from `origin/main` to avoid overwriting unrelated local work.
@@ -32,10 +37,10 @@ Building
 - Keep the expanded INSFORGE smoke manual because it appends two synthetic production `matches` rows per run.
 
 ## Active Projects
-- CRASHOUT: Cycle 92 history persistence smoke is implemented, locally verified, live-backend verified, and open as draft PR #10 — next step is verify protected PR CI and cockpit artifact evidence, then mark ready and merge according to branch policy.
+- CRASHOUT: Cycle 92 history persistence smoke is merged to `main`, with protected PR CI, cockpit artifact evidence, local live backend smoke, and manual main-branch INSFORGE artifact evidence all passing — next step is choose the next isolated backend persistence check or add cleanup/branch support before writing more production synthetic rows.
 
 ## Next Action
-Verify PR #10 protected CI and cockpit artifact evidence, then mark ready and merge according to branch policy.
+Choose and ship the next isolated INSFORGE persistence check: event direct readback via CLI/SQL, balance reconciliation with cleanup, or leaderboard aggregation on an isolated backend branch.
 
 ## Company State
 - Product: CRASHOUT — 1v1 Crash PVP game with play-money economy, match history, leaderboard, analytics, share-your-cashout challenge links, cockpit layout, permanent user-driven deterministic cockpit smoke release gate, production URL smoke workflow, and INSFORGE backend persistence smokes.
