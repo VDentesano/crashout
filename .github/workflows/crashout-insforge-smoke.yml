@@ -7,6 +7,10 @@ on:
         description: "INSFORGE events endpoint ending in /events"
         required: false
         default: "https://2zzc6u78.functions.insforge.app/events"
+      allow_shared_backend:
+        description: "Set true to acknowledge durable synthetic rows on the shared default backend"
+        required: false
+        default: "false"
 
 concurrency:
   group: crashout-insforge-smoke
@@ -45,6 +49,7 @@ jobs:
       - name: Run INSFORGE persistence smoke
         env:
           INSFORGE_EVENTS_URL: ${{ inputs.events_url }}
+          INSFORGE_SMOKE_ALLOW_SHARED_BACKEND: ${{ inputs.allow_shared_backend }}
         run: pnpm run smoke:insforge
 
       - name: Upload INSFORGE smoke evidence

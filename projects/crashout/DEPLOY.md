@@ -116,6 +116,18 @@ INSFORGE_EVENTS_URL=https://<project>.functions.insforge.app/events pnpm run smo
 pnpm run smoke:insforge https://<project>.functions.insforge.app/events
 ```
 
+The checked-in default URL is the shared CRASHOUT backend. The smoke refuses to
+write there unless the operator explicitly acknowledges that durable synthetic
+rows will be created:
+
+```bash
+INSFORGE_SMOKE_ALLOW_SHARED_BACKEND=true pnpm run smoke:insforge
+```
+
+Prefer an isolated INSFORGE backend URL for routine release evidence. Use the
+shared-backend acknowledgement only when intentionally refreshing production
+persistence evidence.
+
 Local evidence is written to `docs/qa/insforge-persistence-smoke/`; keep the
 durable release evidence in the terminal output or CI artifacts.
 
