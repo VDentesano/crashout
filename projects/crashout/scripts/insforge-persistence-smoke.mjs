@@ -14,11 +14,12 @@ const eventsUrl = normalizeUrl(
 );
 const roundsUrl = siblingUrl(eventsUrl, 'rounds');
 const historyUrl = siblingUrl(eventsUrl, 'history');
+const balanceUrl = siblingUrl(eventsUrl, 'balance');
 const outDir = process.env.SMOKE_OUT_DIR
   ? path.resolve(process.env.SMOKE_OUT_DIR)
   : path.join(projectDir, '../../docs/qa/insforge-persistence-smoke');
 
-const runId = `cycle92-${Date.now()}-${randomUUID().slice(0, 8)}`;
+const runId = `cycle93-${Date.now()}-${randomUUID().slice(0, 8)}`;
 const playerId = `smoke-${runId}`;
 const matchToken = randomUUID();
 const clientSeed = `smoke-client-${runId}`;
@@ -90,6 +91,7 @@ async function writeSummary(status, extra = {}) {
     eventsUrl,
     roundsUrl,
     historyUrl,
+    balanceUrl,
     steps,
     ...extra,
   };
@@ -208,6 +210,113 @@ async function main() {
   check(history.stats.winRate === 0.5, 'history stats winRate mismatch', history.stats);
   check(history.stats.netDelta === 50, 'history stats netDelta mismatch', history.stats);
   check(Number(history.stats.bestCashout) === 2.12, 'history stats bestCashout mismatch', history.stats);
+
+  const initialBalance = await postJson(balanceUrl, 'balance get creates persisted player row', {
+    action: 'get',
+    playerId,
+  });
+
+  check(initialBalance?.balance === 1000, 'balance get did not create default balance', initialBalance);
+
+  const prematureRebuy = await postJson(
+    balanceUrl,
+    'balance rebuy rejects sufficient bankroll',
+    {
+      action: 'rebuy',
+      playerId,
+    },
+    400,
+  );
+
+  check(
+    typeof prematureRebuy?.error === 'string' && prematureRebuy.error.includes('balance is sufficient'),
+    'balance rebuy did not reject sufficient bankroll with expected error',
+    prematureRebuy,
+  );
+
+  const winBalance = await postJson(balanceUrl, 'balance apply win persists positive delta', {
+    action: 'apply',
+    playerId,
+    bet: 100,
+    outcome: 'win',
+  });
+
+  check(winBalance?.delta === 100, 'balance win did not return expected delta', winBalance);
+  check(winBalance?.balance === 1100, 'balance win did not persist expected balance', winBalance);
+
+  const afterWin = await postJson(balanceUrl, 'balance get reads win reconciliation', {
+    action: 'get',
+    playerId,
+  });
+
+  check(afterWin?.balance === 1100, 'balance get did not read persisted win balance', afterWin);
+
+  const lossBalance = await postJson(balanceUrl, 'balance apply loss persists negative delta', {
+    action: 'apply',
+    playerId,
+    bet: 500,
+    outcome: 'loss',
+  });
+
+  check(lossBalance?.delta === -500, 'balance loss did not return expected delta', lossBalance);
+  check(lossBalance?.balance === 600, 'balance loss did not persist expected balance', lossBalance);
+
+  const afterLoss = await postJson(balanceUrl, 'balance get reads loss reconciliation', {
+    action: 'get',
+    playerId,
+  });
+
+  check(afterLoss?.balance === 600, 'balance get did not read persisted loss balance', afterLoss);
+
+  const drawBalance = await postJson(balanceUrl, 'balance apply draw persists zero delta', {
+    action: 'apply',
+    playerId,
+    bet: 250,
+    outcome: 'draw',
+  });
+
+  check(drawBalance?.delta === 0, 'balance draw did not return zero delta', drawBalance);
+  check(drawBalance?.balance === 600, 'balance draw changed balance unexpectedly', drawBalance);
+
+  const afterDraw = await postJson(balanceUrl, 'balance get reads draw reconciliation', {
+    action: 'get',
+    playerId,
+  });
+
+  check(afterDraw?.balance === 600, 'balance get did not read persisted draw balance', afterDraw);
+
+  const nearBroke = await postJson(balanceUrl, 'balance apply loss moves player near broke', {
+    action: 'apply',
+    playerId,
+    bet: 500,
+    outcome: 'loss',
+  });
+
+  check(nearBroke?.balance === 100, 'balance near-broke loss did not persist expected balance', nearBroke);
+
+  const broke = await postJson(balanceUrl, 'balance apply loss clamps at zero', {
+    action: 'apply',
+    playerId,
+    bet: 100,
+    outcome: 'loss',
+  });
+
+  check(broke?.delta === -100, 'balance zeroing loss did not return expected delta', broke);
+  check(broke?.balance === 0, 'balance zeroing loss did not clamp to zero', broke);
+
+  const rebuy = await postJson(balanceUrl, 'balance rebuy restores persisted bankroll', {
+    action: 'rebuy',
+    playerId,
+  });
+
+  check(rebuy?.balance === 1000, 'balance rebuy did not restore default bankroll', rebuy);
+
+  const afterRebuy = await postJson(balanceUrl, 'balance get reads rebuy reconciliation', {
+    action: 'get',
+    playerId,
+  });
+
+  check(afterRebuy?.balance === 1000, 'balance get did not read persisted rebuy balance', afterRebuy);
 
   const summary = await writeSummary('passed');
   console.log(`OK ${summary.steps.length} INSFORGE persistence checks passed`);
