@@ -12,6 +12,9 @@ const eventsUrl = normalizeUrl(
     ?? process.env.VITE_INSFORGE_EVENTS_URL
     ?? defaultEventsUrl,
 );
+const allowSharedBackend = ['1', 'true', 'yes'].includes(
+  String(process.env.INSFORGE_SMOKE_ALLOW_SHARED_BACKEND ?? '').toLowerCase(),
+);
 const roundsUrl = siblingUrl(eventsUrl, 'rounds');
 const historyUrl = siblingUrl(eventsUrl, 'history');
 const balanceUrl = siblingUrl(eventsUrl, 'balance');
@@ -20,7 +23,8 @@ const outDir = process.env.SMOKE_OUT_DIR
   ? path.resolve(process.env.SMOKE_OUT_DIR)
   : path.join(projectDir, '../../docs/qa/insforge-persistence-smoke');
 
-const runId = `cycle94-${Date.now()}-${randomUUID().slice(0, 8)}`;
+const smokeCycle = 'cycle99';
+const runId = `${smokeCycle}-${Date.now()}-${randomUUID().slice(0, 8)}`;
 const playerId = `smoke-${runId}`;
 const leaderboardPlayerId = `smoke-leaderboard-${runId}`;
 const matchToken = randomUUID();
@@ -41,6 +45,18 @@ function siblingUrl(url, slug) {
     throw new Error(`INSFORGE events URL must end in /events, got: ${url}`);
   }
   return url.replace(/\/events\/?$/, `/${slug}`);
+}
+
+function checkTargetIsolation() {
+  if (eventsUrl !== defaultEventsUrl || allowSharedBackend) return;
+
+  throw new Error(
+    [
+      'Refusing to run INSFORGE persistence smoke against the shared default backend without acknowledgement.',
+      'This smoke writes durable synthetic rounds, history, balance, and leaderboard rows.',
+      'Use an isolated INSFORGE backend URL, or set INSFORGE_SMOKE_ALLOW_SHARED_BACKEND=true for an intentional shared-backend run.',
+    ].join(' '),
+  );
 }
 
 function sha256Hex(value) {
@@ -100,6 +116,8 @@ async function writeSummary(status, extra = {}) {
     historyUrl,
     balanceUrl,
     leaderboardUrl,
+    sharedBackend: eventsUrl === defaultEventsUrl,
+    sharedBackendAcknowledged: allowSharedBackend,
     steps,
     ...extra,
   };
@@ -108,6 +126,8 @@ async function writeSummary(status, extra = {}) {
 }
 
 async function main() {
+  checkTargetIsolation();
+
   console.log(`INSFORGE persistence smoke: ${eventsUrl}`);
   console.log(`Synthetic player: ${playerId}`);
 
