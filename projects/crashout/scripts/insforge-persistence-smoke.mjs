@@ -15,12 +15,14 @@ const eventsUrl = normalizeUrl(
 const roundsUrl = siblingUrl(eventsUrl, 'rounds');
 const historyUrl = siblingUrl(eventsUrl, 'history');
 const balanceUrl = siblingUrl(eventsUrl, 'balance');
+const leaderboardUrl = siblingUrl(eventsUrl, 'leaderboard');
 const outDir = process.env.SMOKE_OUT_DIR
   ? path.resolve(process.env.SMOKE_OUT_DIR)
   : path.join(projectDir, '../../docs/qa/insforge-persistence-smoke');
 
-const runId = `cycle93-${Date.now()}-${randomUUID().slice(0, 8)}`;
+const runId = `cycle94-${Date.now()}-${randomUUID().slice(0, 8)}`;
 const playerId = `smoke-${runId}`;
+const leaderboardPlayerId = `smoke-leaderboard-${runId}`;
 const matchToken = randomUUID();
 const clientSeed = `smoke-client-${runId}`;
 const startedAt = new Date().toISOString();
@@ -51,6 +53,10 @@ function check(condition, message, detail = undefined) {
     error.detail = detail;
     throw error;
   }
+}
+
+function almostEqual(actual, expected, epsilon = 0.000001) {
+  return Math.abs(Number(actual) - expected) <= epsilon;
 }
 
 async function postJson(url, label, body, expectedStatus = 200) {
@@ -87,11 +93,13 @@ async function writeSummary(status, extra = {}) {
     finishedAt: new Date().toISOString(),
     runId,
     playerId,
+    leaderboardPlayerId,
     matchToken,
     eventsUrl,
     roundsUrl,
     historyUrl,
     balanceUrl,
+    leaderboardUrl,
     steps,
     ...extra,
   };
@@ -210,6 +218,110 @@ async function main() {
   check(history.stats.winRate === 0.5, 'history stats winRate mismatch', history.stats);
   check(history.stats.netDelta === 50, 'history stats netDelta mismatch', history.stats);
   check(Number(history.stats.bestCashout) === 2.12, 'history stats bestCashout mismatch', history.stats);
+
+  const leaderboardRows = [
+    { cashoutMultiplier: 9999.9999, crashPoint: 9999.9999 },
+    { cashoutMultiplier: 8.75, crashPoint: 9.25 },
+    { cashoutMultiplier: 4.5, crashPoint: 5.12 },
+    { cashoutMultiplier: 3.25, crashPoint: 3.9 },
+    { cashoutMultiplier: 2.5, crashPoint: 2.95 },
+  ];
+
+  for (const [index, row] of leaderboardRows.entries()) {
+    const record = await postJson(
+      historyUrl,
+      `leaderboard seed ${index + 1} writes qualifying match row`,
+      {
+        action: 'record',
+        playerId: leaderboardPlayerId,
+        bet: 500,
+        outcome: 'win',
+        crashPoint: row.crashPoint,
+        cashoutMultiplier: row.cashoutMultiplier,
+        delta: 500,
+      },
+      201,
+    );
+    check(record?.ok === true, `leaderboard seed ${index + 1} did not acknowledge write`, record);
+  }
+
+  const leaderboardHistory = await postJson(historyUrl, 'leaderboard seed history reads qualification rows', {
+    action: 'list',
+    playerId: leaderboardPlayerId,
+    limit: 10,
+  });
+
+  check(Array.isArray(leaderboardHistory?.matches), 'leaderboard seed history did not return matches array', leaderboardHistory);
+  check(leaderboardHistory.matches.length === leaderboardRows.length, 'leaderboard seed history returned unexpected match count', leaderboardHistory);
+  check(leaderboardHistory.stats.total === 5, 'leaderboard seed history stats total mismatch', leaderboardHistory.stats);
+  check(leaderboardHistory.stats.wins === 5, 'leaderboard seed history stats wins mismatch', leaderboardHistory.stats);
+  check(leaderboardHistory.stats.losses === 0, 'leaderboard seed history stats losses mismatch', leaderboardHistory.stats);
+  check(leaderboardHistory.stats.draws === 0, 'leaderboard seed history stats draws mismatch', leaderboardHistory.stats);
+  check(leaderboardHistory.stats.winRate === 1, 'leaderboard seed history stats winRate mismatch', leaderboardHistory.stats);
+  check(leaderboardHistory.stats.netDelta === 2500, 'leaderboard seed history stats netDelta mismatch', leaderboardHistory.stats);
+  check(
+    almostEqual(leaderboardHistory.stats.bestCashout, 9999.9999),
+    'leaderboard seed history stats bestCashout mismatch',
+    leaderboardHistory.stats,
+  );
+
+  const invalidLeaderboardLimit = await postJson(
+    leaderboardUrl,
+    'leaderboard rejects invalid limit',
+    {
+      action: 'list',
+      metric: 'netDelta',
+      limit: 51,
+    },
+    400,
+  );
+
+  check(
+    typeof invalidLeaderboardLimit?.error === 'string' && invalidLeaderboardLimit.error.includes('limit'),
+    'leaderboard invalid limit did not return expected error',
+    invalidLeaderboardLimit,
+  );
+
+  const assertLeaderboardEntry = (response, metric, expectedValue, expectedMatches) => {
+    check(Array.isArray(response?.leaderboard), `leaderboard ${metric} did not return leaderboard array`, response);
+    const entry = response.leaderboard.find((candidate) => candidate.playerId === leaderboardPlayerId);
+    check(Boolean(entry), `leaderboard ${metric} did not include synthetic player`, response);
+    check(Number.isInteger(entry.rank) && entry.rank >= 1, `leaderboard ${metric} returned invalid rank`, entry);
+    check(
+      almostEqual(entry.value, expectedValue),
+      `leaderboard ${metric} returned unexpected value`,
+      entry,
+    );
+    check(
+      entry.matchesPlayed === expectedMatches,
+      `leaderboard ${metric} returned unexpected matchesPlayed`,
+      entry,
+    );
+  };
+
+  const netDeltaLeaderboard = await postJson(leaderboardUrl, 'leaderboard netDelta aggregates persisted matches', {
+    action: 'list',
+    metric: 'netDelta',
+    window: 'all',
+    limit: 50,
+  });
+  assertLeaderboardEntry(netDeltaLeaderboard, 'netDelta', 2500, 5);
+
+  const bestCashoutLeaderboard = await postJson(leaderboardUrl, 'leaderboard bestCashout aggregates persisted matches', {
+    action: 'list',
+    metric: 'bestCashout',
+    window: 'all',
+    limit: 50,
+  });
+  assertLeaderboardEntry(bestCashoutLeaderboard, 'bestCashout', 9999.9999, 5);
+
+  const winRateLeaderboard = await postJson(leaderboardUrl, 'leaderboard winRate qualifies persisted matches', {
+    action: 'list',
+    metric: 'winRate',
+    window: 'all',
+    limit: 50,
+  });
+  assertLeaderboardEntry(winRateLeaderboard, 'winRate', 1, 5);
 
   const initialBalance = await postJson(balanceUrl, 'balance get creates persisted player row', {
     action: 'get',

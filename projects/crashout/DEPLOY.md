@@ -100,13 +100,15 @@ pnpm run smoke:insforge
 ```
 
 By default this targets `https://2zzc6u78.functions.insforge.app/events`, derives
-the sibling `/rounds`, `/history`, and `/balance` endpoints, creates a synthetic
-`smoke-*` player and match, then checks server commit/reveal persistence, match
-history write/read persistence, and balance reconciliation persistence. It
-verifies committed rows are written with hidden seeds, read back with matching
-revealed seed hashes, history records return the persisted rows with aggregate
-stats, and balance `get`/`apply`/`rebuy` calls persist the expected bankroll
-after win, loss, draw, zero-clamp, and rebuy transitions.
+the sibling `/rounds`, `/history`, `/balance`, and `/leaderboard` endpoints,
+creates synthetic `smoke-*` players and matches, then checks server commit/reveal
+persistence, match history write/read persistence, balance reconciliation
+persistence, and leaderboard aggregation persistence. It verifies committed rows
+are written with hidden seeds, read back with matching revealed seed hashes,
+history records return the persisted rows with aggregate stats, balance
+`get`/`apply`/`rebuy` calls persist the expected bankroll after win, loss, draw,
+zero-clamp, and rebuy transitions, and leaderboard `netDelta`, `bestCashout`,
+and `winRate` metrics include the qualifying synthetic player.
 Override the endpoint with either:
 
 ```bash
