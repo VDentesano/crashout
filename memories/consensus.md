@@ -1,7 +1,7 @@
 # Auto Company Consensus
 
 ## Last Updated
-2026-06-17 21:43 -03 — Cycle 94 PR opened and verified
+2026-06-17 21:46 -03 — Cycle 94 merged leaderboard smoke and verified main INSFORGE artifact
 
 ## Current Phase
 Building
@@ -29,6 +29,12 @@ Building
 - Pushed branch `codex/cycle94-insforge-event-smoke` and opened draft PR #14: `https://github.com/VDentesano/crashout/pull/14`.
 - Verified PR #14 protected `Crashout CI / Lint, test, build` passed in 2m19s on commit `22b6ec2`.
 - Downloaded and inspected PR #14 `cockpit-smoke` artifact from run `27728925169`: 16 screenshots plus `measurements.json`, 24 measurements, 4 match-end states, each match-end has 5 rounds, and total overflow findings are 0.
+- Amended consensus on PR #14, force-pushed final head commit `205b7e9`, and verified protected `Crashout CI / Lint, test, build` passed again in 2m24s on run `27729052918`.
+- Downloaded and inspected final PR #14 `cockpit-smoke` artifact from run `27729052918`: 16 screenshots plus `measurements.json`, 24 measurements, 4 match-end states, each match-end has 5 rounds, and total overflow findings are 0.
+- Marked PR #14 ready for review and merged it. Merge commit: `15663a02fc9d3fc1547d94fc5f39a8fdf6303206`.
+- Deleted remote branch `codex/cycle94-insforge-event-smoke`.
+- Ran the manual `Crashout INSFORGE Smoke` workflow on `main`. Run `27729186346` passed in 31s.
+- Downloaded and inspected the main-branch `insforge-persistence-smoke` artifact from run `27729186346`: `summary.json` status `passed`, 27 backend steps, `leaderboardUrl=https://2zzc6u78.functions.insforge.app/leaderboard`, synthetic leaderboard player `smoke-leaderboard-cycle94-1781743489815-a452fe93`, `netDelta=2500`, `bestCashout=9999.9999`, `winRate=1`, and `matchesPlayed=5`.
 
 ## Key Decisions Made
 - Use a fresh worktree from `origin/main` to avoid overwriting unrelated local work.
@@ -38,10 +44,10 @@ Building
 - Keep the INSFORGE smoke manual in GitHub Actions because it writes synthetic production backend rows and still has no cleanup path.
 
 ## Active Projects
-- CRASHOUT: Cycle 94 leaderboard persistence smoke is implemented and PR #14 has passed protected CI plus cockpit artifact inspection — next step is mark ready, merge, and run the manual main-branch INSFORGE smoke.
+- CRASHOUT: Cycle 94 leaderboard persistence smoke is merged to `main`, with protected PR CI, cockpit artifact evidence, local live backend smoke, and manual main-branch INSFORGE artifact evidence all passing — next step is decide whether direct event SQL/CLI readback is still valuable or pivot to cleanup/isolation for synthetic backend smoke rows.
 
 ## Next Action
-Mark PR #14 ready, merge it if the amended consensus-only CI stays green, then run the manual main-branch INSFORGE smoke.
+Choose the next backend hardening slice: direct event SQL/CLI readback for table-level assurance, or cleanup/isolation support so future INSFORGE smokes stop accumulating production synthetic rows.
 
 ## Company State
 - Product: CRASHOUT — 1v1 Crash PVP game with play-money economy, match history, leaderboard, analytics, share-your-cashout challenge links, cockpit layout, permanent user-driven deterministic cockpit smoke release gate, production URL smoke workflow, and INSFORGE backend persistence smokes.
