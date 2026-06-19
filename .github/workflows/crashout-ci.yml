@@ -93,17 +93,17 @@ jobs:
         env:
           INSFORGE_ACCESS_TOKEN: ${{ secrets.INSFORGE_ACCESS_TOKEN }}
           INSFORGE_PROJECT_ID: ${{ secrets.INSFORGE_PROJECT_ID }}
+          INSFORGE_PROJECT_CONFIG: ${{ secrets.INSFORGE_PROJECT_CONFIG }}
         run: |
           test -n "$INSFORGE_ACCESS_TOKEN"
-          test -n "$INSFORGE_PROJECT_ID"
-          pnpm dlx @insforge/cli link --project-id "$INSFORGE_PROJECT_ID"
-          pnpm dlx @insforge/cli current --json
+          test -n "$INSFORGE_PROJECT_CONFIG"
 
       - name: Run INSFORGE event readback smoke
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_insforge_event_smoke == true }}
         env:
           INSFORGE_ACCESS_TOKEN: ${{ secrets.INSFORGE_ACCESS_TOKEN }}
           INSFORGE_PROJECT_ID: ${{ secrets.INSFORGE_PROJECT_ID }}
+          INSFORGE_PROJECT_CONFIG: ${{ secrets.INSFORGE_PROJECT_CONFIG }}
           INSFORGE_EVENTS_URL: ${{ inputs.insforge_events_url }}
           SMOKE_CYCLE: "107"
           SMOKE_OUT_DIR: ../../docs/qa/insforge-event-readback-smoke
@@ -122,6 +122,7 @@ jobs:
         env:
           INSFORGE_ACCESS_TOKEN: ${{ secrets.INSFORGE_ACCESS_TOKEN }}
           INSFORGE_PROJECT_ID: ${{ secrets.INSFORGE_PROJECT_ID }}
+          INSFORGE_PROJECT_CONFIG: ${{ secrets.INSFORGE_PROJECT_CONFIG }}
           INSFORGE_BALANCE_URL: ${{ inputs.insforge_balance_url }}
           SMOKE_CYCLE: "107"
           SMOKE_OUT_DIR: ../../docs/qa/insforge-balance-reconciliation-smoke
