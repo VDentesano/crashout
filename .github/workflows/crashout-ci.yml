@@ -1,6 +1,28 @@
 name: Crashout CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      run_insforge_event_smoke:
+        description: "Run the INSFORGE event SQL readback smoke and upload evidence"
+        required: true
+        type: boolean
+        default: true
+      run_insforge_balance_smoke:
+        description: "Run the INSFORGE balance reconciliation smoke and upload evidence"
+        required: true
+        type: boolean
+        default: false
+      insforge_events_url:
+        description: "INSFORGE /events endpoint"
+        required: false
+        type: string
+        default: "https://2zzc6u78.functions.insforge.app/events"
+      insforge_balance_url:
+        description: "INSFORGE /balance endpoint"
+        required: false
+        type: string
+        default: "https://2zzc6u78.functions.insforge.app/balance"
   pull_request:
     paths:
       - ".github/workflows/crashout-ci.yml"
@@ -64,4 +86,51 @@ jobs:
         with:
           name: cockpit-smoke
           path: docs/qa/cockpit-smoke/
+          retention-days: 14
+
+      - name: Check INSFORGE smoke credentials
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.run_insforge_event_smoke == true || inputs.run_insforge_balance_smoke == true) }}
+        env:
+          INSFORGE_ACCESS_TOKEN: ${{ secrets.INSFORGE_ACCESS_TOKEN }}
+          INSFORGE_PROJECT_ID: ${{ secrets.INSFORGE_PROJECT_ID }}
+        run: |
+          test -n "$INSFORGE_ACCESS_TOKEN"
+          test -n "$INSFORGE_PROJECT_ID"
+          pnpm dlx @insforge/cli link --project-id "$INSFORGE_PROJECT_ID"
+          pnpm dlx @insforge/cli current --json
+
+      - name: Run INSFORGE event readback smoke
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_insforge_event_smoke == true }}
+        env:
+          INSFORGE_ACCESS_TOKEN: ${{ secrets.INSFORGE_ACCESS_TOKEN }}
+          INSFORGE_PROJECT_ID: ${{ secrets.INSFORGE_PROJECT_ID }}
+          INSFORGE_EVENTS_URL: ${{ inputs.insforge_events_url }}
+          SMOKE_CYCLE: "107"
+          SMOKE_OUT_DIR: ../../docs/qa/insforge-event-readback-smoke
+        run: pnpm run smoke:insforge:event
+
+      - name: Upload INSFORGE event readback artifacts
+        if: ${{ github.event_name == 'workflow_dispatch' && !cancelled() && inputs.run_insforge_event_smoke == true }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: insforge-event-readback-smoke
+          path: docs/qa/insforge-event-readback-smoke/
+          retention-days: 14
+
+      - name: Run INSFORGE balance reconciliation smoke
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_insforge_balance_smoke == true }}
+        env:
+          INSFORGE_ACCESS_TOKEN: ${{ secrets.INSFORGE_ACCESS_TOKEN }}
+          INSFORGE_PROJECT_ID: ${{ secrets.INSFORGE_PROJECT_ID }}
+          INSFORGE_BALANCE_URL: ${{ inputs.insforge_balance_url }}
+          SMOKE_CYCLE: "107"
+          SMOKE_OUT_DIR: ../../docs/qa/insforge-balance-reconciliation-smoke
+        run: pnpm run smoke:insforge:balance
+
+      - name: Upload INSFORGE balance reconciliation artifacts
+        if: ${{ github.event_name == 'workflow_dispatch' && !cancelled() && inputs.run_insforge_balance_smoke == true }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: insforge-balance-reconciliation-smoke
+          path: docs/qa/insforge-balance-reconciliation-smoke/
           retention-days: 14
