@@ -144,34 +144,30 @@ async function queryEventRows() {
 }
 
 async function ensureInsforgeProjectLink() {
-  if (projectLinked || !process.env.INSFORGE_PROJECT_ID) return;
+  if (projectLinked || (!process.env.INSFORGE_PROJECT_CONFIG && !process.env.INSFORGE_PROJECT_ID)) return;
 
   try {
-    const { stderr } = await execFileAsync(
-      'pnpm',
-      ['dlx', '@insforge/cli', 'link', '--project-id', process.env.INSFORGE_PROJECT_ID],
-      {
-        cwd: projectDir,
-        maxBuffer: 1024 * 1024,
-        env: process.env,
-      },
+    const projectConfig = process.env.INSFORGE_PROJECT_CONFIG
+      ? JSON.parse(process.env.INSFORGE_PROJECT_CONFIG)
+      : { project_id: process.env.INSFORGE_PROJECT_ID };
+    const insforgeDir = path.join(projectDir, '.insforge');
+    await mkdir(insforgeDir, { recursive: true });
+    await writeFile(
+      path.join(insforgeDir, 'project.json'),
+      `${JSON.stringify(projectConfig, null, 2)}\n`,
+      { mode: 0o600 },
     );
 
     steps.push({
-      label: 'insforge cli links project from INSFORGE_PROJECT_ID',
-      command: 'pnpm dlx @insforge/cli link --project-id <redacted>',
+      label: 'insforge project link file created from environment',
       status: 'ok',
-      stderr: stderr.trim() || undefined,
     });
     projectLinked = true;
   } catch (error) {
     steps.push({
-      label: 'insforge cli links project from INSFORGE_PROJECT_ID',
-      command: 'pnpm dlx @insforge/cli link --project-id <redacted>',
+      label: 'insforge project link file created from environment',
       status: 'failed',
       exitCode: error.code,
-      stdout: error.stdout?.trim(),
-      stderr: error.stderr?.trim(),
     });
     throw error;
   }
