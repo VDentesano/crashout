@@ -5,6 +5,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 
 const execFileAsync = promisify(execFile);
 
@@ -30,7 +31,7 @@ const marker = randomUUID();
 const ts = Date.now();
 const startedAt = new Date().toISOString();
 const steps = [];
-let projectLinked = false;
+let cliConfigured = false;
 
 function normalizeUrl(url) {
   try {
@@ -96,7 +97,7 @@ async function postEvent() {
 }
 
 async function queryEventRows() {
-  await ensureInsforgeProjectLink();
+  await ensureInsforgeCliConfig();
 
   const sql = [
     'select id, name, player_id, session_id, arm, ts, props, created_at',
@@ -143,29 +144,42 @@ async function queryEventRows() {
   }
 }
 
-async function ensureInsforgeProjectLink() {
-  if (projectLinked || (!process.env.INSFORGE_PROJECT_CONFIG && !process.env.INSFORGE_PROJECT_ID)) return;
+async function ensureInsforgeCliConfig() {
+  if (cliConfigured) return;
 
   try {
-    const projectConfig = process.env.INSFORGE_PROJECT_CONFIG
-      ? JSON.parse(process.env.INSFORGE_PROJECT_CONFIG)
-      : { project_id: process.env.INSFORGE_PROJECT_ID };
-    const insforgeDir = path.join(projectDir, '.insforge');
-    await mkdir(insforgeDir, { recursive: true });
-    await writeFile(
-      path.join(insforgeDir, 'project.json'),
-      `${JSON.stringify(projectConfig, null, 2)}\n`,
-      { mode: 0o600 },
-    );
+    if (process.env.INSFORGE_PROJECT_CONFIG || process.env.INSFORGE_PROJECT_ID) {
+      const projectConfig = process.env.INSFORGE_PROJECT_CONFIG
+        ? JSON.parse(process.env.INSFORGE_PROJECT_CONFIG)
+        : { project_id: process.env.INSFORGE_PROJECT_ID };
+      const insforgeDir = path.join(projectDir, '.insforge');
+      await mkdir(insforgeDir, { recursive: true });
+      await writeFile(
+        path.join(insforgeDir, 'project.json'),
+        `${JSON.stringify(projectConfig, null, 2)}\n`,
+        { mode: 0o600 },
+      );
+    }
+
+    if (process.env.INSFORGE_CREDENTIALS_CONFIG) {
+      const credentials = JSON.parse(process.env.INSFORGE_CREDENTIALS_CONFIG);
+      const credentialsDir = path.join(homedir(), '.insforge');
+      await mkdir(credentialsDir, { recursive: true });
+      await writeFile(
+        path.join(credentialsDir, 'credentials.json'),
+        `${JSON.stringify(credentials, null, 2)}\n`,
+        { mode: 0o600 },
+      );
+    }
 
     steps.push({
-      label: 'insforge project link file created from environment',
+      label: 'insforge cli config files created from environment',
       status: 'ok',
     });
-    projectLinked = true;
+    cliConfigured = true;
   } catch (error) {
     steps.push({
-      label: 'insforge project link file created from environment',
+      label: 'insforge cli config files created from environment',
       status: 'failed',
       exitCode: error.code,
     });
